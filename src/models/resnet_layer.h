@@ -23,7 +23,7 @@ struct ConvResnetLayerOptions {
     c1sz(c1sz),
     c2sz(c2sz)
   {}
-  ConvResnetLayerOptions(const s::vector<TensorDim> dims){
+  ConvResnetLayerOptions(const s::vector<TensorDim>& dims){
     assert(dims.size() == 3);
 
     xcsz = dims[0].i;

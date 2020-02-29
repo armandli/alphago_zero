@@ -24,7 +24,7 @@ struct ZeroModelResnetSmallOptions {
   ConvResnetLayerOptions c4rsz;
 
   ZeroModelResnetSmallOptions() = default;
-  ZeroModelResnetSmallOptions(const s::vector<TensorDim> dims){
+  ZeroModelResnetSmallOptions(const s::vector<TensorDim>& dims){
     assert(dims.size() == 18);
 
     c1sz = dims[0];
