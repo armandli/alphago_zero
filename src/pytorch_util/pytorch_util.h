@@ -44,7 +44,6 @@ uint sample_discrete_distribution(float* probabilities, size_t size, ENG& eng){
 }
 
 //helper function that creates a ConvOptions<D> from ConvNdOptions<D>, which does not exist in pytorch
-//NOTE: this loses information regarding
 template <size_t D>
 t::nn::ConvOptions<D> conv_options(const t::nn::detail::ConvNdOptions<D>& convnd_options){
   return t::nn::ConvOptions<D>(convnd_options.in_channels(), convnd_options.out_channels(), convnd_options.kernel_size())
