@@ -23,6 +23,7 @@ target_link_libraries(zero_9small_selfplay encoders)
 target_link_libraries(zero_9small_selfplay experience)
 target_link_libraries(zero_9small_selfplay models)
 target_link_libraries(zero_9small_selfplay agents)
+target_link_libraries(zero_9small_selfplay CLI11::CLI11)
 
 #vs_zero_9small
 add_executable(vs_zero_9small vs_zero_9small.cpp)
@@ -49,6 +50,7 @@ target_link_libraries(vs_zero_9small encoders)
 target_link_libraries(vs_zero_9small experience)
 target_link_libraries(vs_zero_9small models)
 target_link_libraries(vs_zero_9small agents)
+target_link_libraries(vs_zero_9small CLI11::CLI11)
 
 #Zero13 Small
 add_executable(zero_13small_selfplay zero_9small_selfplay.cpp)
@@ -75,6 +77,7 @@ target_link_libraries(zero_13small_selfplay encoders)
 target_link_libraries(zero_13small_selfplay experience)
 target_link_libraries(zero_13small_selfplay models)
 target_link_libraries(zero_13small_selfplay agents)
+target_link_libraries(zero_13small_selfplay CLI11::CLI11)
 
 #vs_zero_13small
 add_executable(vs_zero_13small vs_zero_9small.cpp)
@@ -101,3 +104,4 @@ target_link_libraries(vs_zero_13small encoders)
 target_link_libraries(vs_zero_13small experience)
 target_link_libraries(vs_zero_13small models)
 target_link_libraries(vs_zero_13small agents)
+target_link_libraries(vs_zero_13small CLI11::CLI11)

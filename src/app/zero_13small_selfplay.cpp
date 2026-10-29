@@ -1,7 +1,6 @@
 #include <cassert>
 #include <ctime>
 #include <cstdlib>
-#include <cctype>
 #include <string>
 #include <random>
 #include <chrono>
@@ -9,6 +8,8 @@
 #include <iostream>
 #include <filesystem>
 #include <algorithm>
+
+#include <CLI/CLI.hpp>
 
 #include <type_alias.h>
 #include <types.h>
@@ -32,7 +33,7 @@ namespace R = rlgames;
 
 constexpr ubyte SZ = 13;
 
-int main(int argc, const char* argv[]){
+int main(int argc, char* argv[]){
   uint episodes = 1000;
   uint batchsize = 10;
   s::string model_config_file;
@@ -40,22 +41,14 @@ int main(int argc, const char* argv[]){
   s::string optimizer_file;
   s::string result_file;
 
-  if (argc != 7){
-    s::cout << "Usage: " << argv[0] << " <episodes> <batchsize> <model_config> <model_file> <optimizer_file> <result_file>" << s::endl;
-    s::exit(1);
-  }
-
-  episodes  = atoi(argv[1]);
-  batchsize = atoi(argv[2]);
-  model_config_file = argv[3];
-  model_file = argv[4];
-  optimizer_file = argv[5];
-  result_file = argv[6];
-
-  if (not s::filesystem::exists(model_config_file)){
-    s::cout << "model configuration file does not exist" << s::endl;
-    s::exit(1);
-  }
+  CLI::App app{"AlphaGo Zero 13x13 self-play training"};
+  app.add_option("-e,--episodes",    episodes,          "Number of training episodes")->default_val(1000);
+  app.add_option("-b,--batchsize",   batchsize,         "Games per episode batch")->default_val(10);
+  app.add_option("-c,--model-config",model_config_file, "Model configuration file")->required()->check(CLI::ExistingFile);
+  app.add_option("-m,--model",       model_file,        "Model checkpoint file")->required();
+  app.add_option("-o,--optimizer",   optimizer_file,    "Optimizer checkpoint file")->required();
+  app.add_option("-r,--result",      result_file,       "Output result file")->required();
+  CLI11_PARSE(app, argc, argv);
 
   srand(time(nullptr));
   uint max_bsize = batchsize * SZ * SZ * SZ;

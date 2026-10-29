@@ -1,11 +1,12 @@
 #include <cassert>
 #include <ctime>
-#include <cctype>
+#include <cstdlib>
 #include <string>
 #include <random>
 #include <chrono>
 #include <iostream>
-#include <filesystem>
+
+#include <CLI/CLI.hpp>
 
 #include <type_alias.h>
 #include <types.h>
@@ -29,28 +30,16 @@ namespace R = rlgames;
 
 constexpr ubyte SZ= 13;
 
-int main(int argc, const char* argv[]){
+int main(int argc, char* argv[]){
   s::string model_config_file;
   s::string model_file;
   s::string optimizer_file;
-  if (argc != 4){
-    s::cout << "Usage: " << argv[0] << " <model_config_file> <model_file> <optimizer_file>" << s::endl;
-    s::exit(1);
-  }
 
-  model_config_file = argv[1];
-  model_file = argv[2];
-  optimizer_file = argv[3];
-
-  if (not s::filesystem::exists(model_config_file)){
-    s::cout << "model configuration file does not exist" << s::endl;
-    s::exit(1);
-  }
-
-  if (not s::filesystem::exists(model_file) || not s::filesystem::exists(optimizer_file)){
-    s::cout << "model file or optimizer file does not exist" << s::endl;
-    s::exit(1);
-  }
+  CLI::App app{"Play against AlphaGo Zero 13x13"};
+  app.add_option("-c,--model-config",model_config_file, "Model configuration file")->required()->check(CLI::ExistingFile);
+  app.add_option("-m,--model",       model_file,        "Model checkpoint file")->required()->check(CLI::ExistingFile);
+  app.add_option("-o,--optimizer",   optimizer_file,    "Optimizer checkpoint file")->required()->check(CLI::ExistingFile);
+  CLI11_PARSE(app, argc, argv);
 
   srand(time(nullptr));
 
