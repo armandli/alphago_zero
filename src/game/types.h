@@ -78,6 +78,8 @@ bool operator==(const Move& a, const Move& b){
   case M::Resign:
   case M::Unknown:
     return a.mty == b.mty;
+  default:
+    return false;
   }
 }
 

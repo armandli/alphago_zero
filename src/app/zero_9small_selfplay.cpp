@@ -163,7 +163,7 @@ int main(int argc, char* argv[]){
     }
     float loss = train(model_container, experience);
 
-    if (i % reporting_interval){
+    if (i % reporting_interval == 0){
       s::cout << "Episode " << i << ". Loss " << loss << s::endl;
     }
 

@@ -77,8 +77,8 @@ template <ubyte SZ>
 [[gnu::always_inline]] GoStr<SZ> merge(const GoStr<SZ>& a, const GoStr<SZ>& b){
   assert(a.color() == b.color());
 
-  s::bitset<SZ> stones = a.stones() | b.stones();
-  s::bitset<SZ> liberties = (a.liberties() | b.liberties()) & ~stones;
+  s::bitset<SZ * SZ> stones = a.stones() | b.stones();
+  s::bitset<SZ * SZ> liberties = (a.liberties() | b.liberties()) & ~stones;
   return GoStr<SZ>(stones, liberties, a.color());
 }
 

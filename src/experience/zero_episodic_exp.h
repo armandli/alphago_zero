@@ -32,7 +32,7 @@ struct ZeroExperience {
     rewards(t::zeros({0}, device))
   {}
 
-  void export_experience(const s::string& boards_file, const s::string& states_file, s::string& vcount_file, s::string& rewards_file){
+  void export_experience(const s::string& boards_file, const s::string& states_file, const s::string& vcount_file, const s::string& rewards_file){
     t::save(boards, boards_file);
     t::save(states, states_file);
     t::save(visit_counts, vcount_file);

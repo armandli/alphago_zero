@@ -84,7 +84,7 @@ public:
     bc3(register_module("bc3", t::nn::Conv2d(t::nn::Conv2dOptions(bc2sz.i, bc3sz.i, bc3sz.j)))),
     bc4(register_module("bc4", t::nn::Conv2d(t::nn::Conv2dOptions(bc3sz.i, bc4sz.i, bc4sz.j)))),
     pc1(register_module("pc1", t::nn::Conv2d(t::nn::Conv2dOptions(bc4sz.i, pcsz.i, pcsz.j)))),
-    vc1(register_module("vc1", t::nn::Conv2d(t::nn::Conv2dOptions(bc4sz.i, vcsz.j, vcsz.j)))),
+    vc1(register_module("vc1", t::nn::Conv2d(t::nn::Conv2dOptions(bc4sz.i, vcsz.i, vcsz.j)))),
     pl1(register_module("pl1",
       t::nn::Linear(
         (ssz.x.j - bc1sz.j - bc2sz.j - bc3sz.j - bc4sz.j - pcsz.j + 5) *
