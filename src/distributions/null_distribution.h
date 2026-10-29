@@ -49,7 +49,7 @@ struct null_distribution {
 private:
   s::array<ty, Size> generate() {
     s::array<ty, Size> ret;
-    s::fill(s::begin(ret), s::end(ret), 0.F);
+    s::ranges::fill(ret, 0.F);
     return ret;
   }
 };

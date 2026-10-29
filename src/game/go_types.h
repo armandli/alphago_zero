@@ -10,6 +10,7 @@
 #include <functional>
 #include <algorithm>
 #include <ostream>
+#include <utility>
 
 #include <type_alias.h>
 #include <types.h>
@@ -145,9 +146,9 @@ struct GoBoard : Board<GoBoard<SZ>> {
 
   uint size() const { return SZ; }
   uint hash() const { return mHash; }
-  bool is_on_grid(Pt pt) const { return (pt.r < SZ and pt.c < SZ); }
+  [[nodiscard]] bool is_on_grid(Pt pt) const { return (pt.r < SZ and pt.c < SZ); }
 
-  Player get(Pt pt) const {
+  [[nodiscard]] Player get(Pt pt) const {
     assert(is_on_grid(pt));
 
     uint idx = get_string_idx(pt);
@@ -347,7 +348,8 @@ template <ubyte SZ>
 struct GoAreaScore {
   static constexpr uint  SIZE = SZ;
   static constexpr uint  IZ   = SZ * SZ;
-  static constexpr ubyte DAME = (ubyte)Player::White | (ubyte)Player::Black;
+  static constexpr ubyte DAME = static_cast<ubyte>(s::to_underlying(Player::White))
+                              | static_cast<ubyte>(s::to_underlying(Player::Black));
 
   explicit GoAreaScore(const GoBoard<SZ>& board, float komi = 7.5):
     mBoard(board),
@@ -356,7 +358,7 @@ struct GoAreaScore {
     mDames(0), mKomi(komi)
   {}
 
-  Player winner() {
+  [[nodiscard]] Player winner() {
     if (not is_winner_computed()) compute_winner();
     if (mBlackPoints + mBlackTerritory >
         mWhitePoints + mWhiteTerritory + mKomi)
@@ -388,7 +390,7 @@ protected:
             ubyte rret = this->operator()(neighbour, points);
             coloring |= rret;
           } else if (color != Player::Unknown) {
-            coloring |= (ubyte)color;
+            coloring |= static_cast<ubyte>(s::to_underlying(color));
           }
         }
         if (coloring == 0) return DAME;
@@ -427,26 +429,18 @@ protected:
         break;
 
       case Player::Unknown:
-        switch (labels[i]) {
-        case (ubyte)Player::Black:
+        if (labels[i] == static_cast<ubyte>(s::to_underlying(Player::Black)))
           mBlackTerritory++;
-          break;
-
-        case (ubyte)Player::White:
+        else if (labels[i] == static_cast<ubyte>(s::to_underlying(Player::White)))
           mWhiteTerritory++;
-          break;
-
-        case DAME:
+        else if (labels[i] == DAME)
           mDames++;
-          break;
-
-        default:
-          assert(false);
-        }
+        else
+          s::unreachable();
         break;
 
       default:
-        assert(false);
+        s::unreachable();
       }
     }
   }
@@ -533,7 +527,7 @@ struct GoGameState : GameState<GoBoard<SZ>, GoGameState<SZ>> {
   Player next_player() const { return mNPlayer; }
   Move previous_move() const { return mPMove; }
 
-  bool is_over() const {
+  [[nodiscard]] bool is_over() const {
     if (mPMove.mty == M::Unknown)  return false;
     if (mPMove.mty == M::Resign)   return true;
     if (mPPMove.mty == M::Unknown) return false;
@@ -545,7 +539,7 @@ struct GoGameState : GameState<GoBoard<SZ>, GoGameState<SZ>> {
     test_board.place_stone(mNPlayer, move.mpt);
     return mHistory.find(test_board.hash()) != s::end(mHistory);
   }
-  bool is_valid_move(Move move) const {
+  [[nodiscard]] bool is_valid_move(Move move) const {
     if (is_over())                                          return false;
     if (move.mty == M::Pass or move.mty == M::Resign)       return true;
     // does not allow self capture in this game
@@ -567,7 +561,7 @@ struct GoGameState : GameState<GoBoard<SZ>, GoGameState<SZ>> {
     ret.push_back(Move(M::Resign));
     return ret;
   }
-  Player winner() {
+  [[nodiscard]] Player winner() {
     if (not is_over()) return Player::Unknown;
     if (mPMove.mty == M::Resign) return mNPlayer;
     GoAreaScore<SZ> scorer(mBoard, default_komi<SZ>());

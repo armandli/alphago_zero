@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iostream>
+#include <print>
 
 #include <type_alias.h>
 #include <types.h>
@@ -15,9 +16,9 @@ Move parse_move(uint board_size) {
   s::string input;
   do {
     s::getline(s::cin, input);
-    Move m = string_to_move(input, board_size);
-    if (m.mty != M::Unknown) return m;
-    s::cout << "unable to parse input. try again" << s::endl;
+    auto opt = string_to_move(input, board_size);
+    if (opt) return *opt;
+    s::println("unable to parse input. try again");
   } while (true);
 }
 

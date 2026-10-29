@@ -71,10 +71,7 @@ struct ZeroEpisodicExpCollector {
 
     mBoards[mOffset + mStepCount] = st.x;
     mStates[mOffset + mStepCount] = st.y;
-    s::copy(
-      s::begin(visit_counts),
-      s::end(visit_counts),
-      s::back_inserter(mVisitCounts));
+    s::ranges::copy(visit_counts, s::back_inserter(mVisitCounts));
 
     mStepCount++;
     return true;
@@ -112,7 +109,7 @@ struct ZeroEpisodicExpCollector {
     else
       return r.to(mDevice);
   }
-  ZeroExperience experience() {
+  [[nodiscard]] ZeroExperience experience() {
     assert(mVisitCounts.size() == mOffset * mActionSize);
 
     return ZeroExperience(boards(), states(), visit_counts(), rewards());

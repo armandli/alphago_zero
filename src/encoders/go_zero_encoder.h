@@ -85,7 +85,7 @@ struct ZeroGoStateEncoder :
     else
       return TensorP(tboard.clone(), tstate.clone());
   }
-  TensorDimP state_size() const {
+  [[nodiscard]] TensorDimP state_size() const {
     return TensorDimP(TensorDim(9, SZ, SZ), TensorDim(2));
   }
 

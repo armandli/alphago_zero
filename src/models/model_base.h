@@ -8,6 +8,7 @@
 #include <vector>
 #include <fstream>
 #include <numeric>
+#include <algorithm>
 
 #include <pytorch_util.h>
 #include <go_zero_encoder.h>
@@ -113,7 +114,7 @@ void load_model(
 }
 
 template <typename Model>
-float train(Model& model, ZeroExperience& exp) {
+[[nodiscard]] float train(Model& model, ZeroExperience& exp) {
   t::Tensor visit_sums = t::sum(exp.visit_counts, -1)
     .reshape({exp.visit_counts.size(0), 1});
   t::Tensor visit_counts = t::div(exp.visit_counts, visit_sums);
@@ -158,19 +159,17 @@ void save_training_result(
 
   j::Value loss_key("losses");
   j::Value loss_values(j::kArrayType);
-  for (uint i = 0; i < losses.size(); ++i)
-    loss_values.PushBack(j::Value().SetFloat(losses[i]), allocator);
+  for (float loss : losses)
+    loss_values.PushBack(j::Value().SetFloat(loss), allocator);
   doc.AddMember(loss_key, loss_values, allocator);
 
   j::Value step_counts_key("step_counts");
   j::Value step_counts_values(j::kArrayType);
-  for (uint i = 0; i < step_counts.size(); ++i)
-    step_counts_values.PushBack(
-      j::Value().SetInt(step_counts[i]), allocator);
+  for (uint steps : step_counts)
+    step_counts_values.PushBack(j::Value().SetInt(steps), allocator);
   doc.AddMember(step_counts_key, step_counts_values, allocator);
 
-  uint total_steps = s::accumulate(
-    s::begin(step_counts), s::end(step_counts), 0U);
+  uint total_steps = s::ranges::fold_left(step_counts, 0U, s::plus<>{});
   float avg_steps = (float)total_steps / (float)step_counts.size();
 
   j::Value avg_steps_key("average_steps");

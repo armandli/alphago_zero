@@ -4,6 +4,7 @@
 #include <cassert>
 #include <array>
 #include <algorithm>
+#include <utility>
 
 #include <torch/torch.h>
 
@@ -55,7 +56,7 @@ struct ZeroAgent :
     mNoiseFactor(noise_factor)
   {}
 
-  Move select_move(const GameState& gs) {
+  [[nodiscard]] Move select_move(const GameState& gs) {
     // root should never be a terminal state
     assert(not gs.is_over());
 
@@ -229,7 +230,7 @@ protected:
     s::array<float, BF> noise = mNoise(mGen);
     float tcount = node->total_count;
     s::array<float, BF> score;
-    s::fill(s::begin(score), s::end(score), MIN_SCORE);
+    s::ranges::fill(score, MIN_SCORE);
     for (uint i = 0; i < moves.size(); ++i) {
       uint idx = mModel.action_encoder.move_to_idx(moves[i]);
       float q = node->expected_value(idx);

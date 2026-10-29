@@ -23,7 +23,7 @@ struct RandomAgent :
     s::srand(unsigned(s::time(0)));
   }
 
-  Move select_move(const GameState& gs) {
+  [[nodiscard]] Move select_move(const GameState& gs) {
     if (mCache.size() == 0) {
       size_t sz = gs.board().size();
       initialize_cache(sz * sz);

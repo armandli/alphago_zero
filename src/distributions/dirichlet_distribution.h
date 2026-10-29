@@ -21,7 +21,7 @@ struct dirichlet_distribution {
     using distribution_type = dirichlet_distribution;
 
     explicit param_type(s::initializer_list<ty> as) {
-      s::copy(s::begin(as), s::end(as), s::begin(mAlphas));
+      s::ranges::copy(as, s::begin(mAlphas));
     }
 
     ty param(uint idx) const { return mAlphas[idx]; }
@@ -89,8 +89,8 @@ private:
     s::array<ty, Size> ret;
     for (uint i = 0; i < Size; ++i)
       ret[i] = mGammas[i](g);
-    ty sum = s::accumulate(s::begin(ret), s::end(ret), (ty)0.);
-    s::for_each(s::begin(ret), s::end(ret), [&sum](ty& v){ v /= sum; });
+    ty sum = s::ranges::fold_left(ret, (ty)0., s::plus<>{});
+    s::ranges::for_each(ret, [&sum](ty& v){ v /= sum; });
     return ret;
   }
 };

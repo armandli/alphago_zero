@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <thread>
 #include <future>
+#include <utility>
 
 #include <type_alias.h>
 #include <types.h>
@@ -46,7 +47,7 @@ struct LPMCTSAgent :
       mNumThreads = 1U;
   }
 
-  Move select_move(GameState& gs) {
+  [[nodiscard]] Move select_move(GameState& gs) {
     GameState gs_copy = gs;  // explicit copy to reduce total copying
     BufferAllocator<MCTSNode> arena(mMaxExpand + 1);
     MCTSNode* root = arena.allocate(MCTSNode(s::move(gs_copy)));
@@ -128,7 +129,7 @@ protected:
       case Player::Black:   score += MAX_SCORE; break;
       case Player::White:   score += MIN_SCORE; break;
       case Player::Unknown: score += TIE_SCORE; break;
-      default: assert(false);
+      default: s::unreachable();
       }
     }
     return score;
@@ -138,7 +139,7 @@ protected:
     switch (player) {
     case Player::Black: return score > best_score;
     case Player::White: return score < best_score;
-    default: assert(false);
+    default: s::unreachable();
     }
   }
 
@@ -146,7 +147,7 @@ protected:
     switch (player) {
     case Player::Black: return MIN_SCORE;
     case Player::White: return MAX_SCORE;
-    default: assert(false);
+    default: s::unreachable();
     }
   }
 

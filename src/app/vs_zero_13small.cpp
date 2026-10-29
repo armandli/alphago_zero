@@ -5,6 +5,7 @@
 #include <random>
 #include <chrono>
 #include <iostream>
+#include <print>
 
 #include <CLI/CLI.hpp>
 
@@ -114,7 +115,7 @@ int main(int argc, char* argv[]) {
       break;
 
     default:
-      assert(false);
+      s::unreachable();
     }
 
     state.apply_move(move);
@@ -126,15 +127,14 @@ int main(int argc, char* argv[]) {
   switch (winner) {
   case R::Player::Black:
   case R::Player::White:
-    s::cout << winner << " won";
+    s::cout << winner << " won\n";
     break;
 
   case R::Player::Unknown:
-    s::cout << "ties";
+    s::println("ties");
     break;
 
   default:
-    assert(false);
+    s::unreachable();
   }
-  s::cout << s::endl;
 }

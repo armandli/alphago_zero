@@ -2,7 +2,7 @@
 add_executable(zero_9small_selfplay zero_9small_selfplay.cpp)
 
 target_link_libraries(zero_9small_selfplay "${TORCH_LIBRARIES}")
-set_property(TARGET zero_9small_selfplay PROPERTY CXX_STANDARD 17)
+set_property(TARGET zero_9small_selfplay PROPERTY CXX_STANDARD 26)
 
 if (MSVC)
   file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
@@ -29,7 +29,7 @@ target_link_libraries(zero_9small_selfplay CLI11::CLI11)
 add_executable(vs_zero_9small vs_zero_9small.cpp)
 
 target_link_libraries(vs_zero_9small "${TORCH_LIBRARIES}")
-set_property(TARGET vs_zero_9small PROPERTY CXX_STANDARD 17)
+set_property(TARGET vs_zero_9small PROPERTY CXX_STANDARD 26)
 
 if (MSVC)
   file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
@@ -56,7 +56,7 @@ target_link_libraries(vs_zero_9small CLI11::CLI11)
 add_executable(zero_13small_selfplay zero_9small_selfplay.cpp)
 
 target_link_libraries(zero_13small_selfplay "${TORCH_LIBRARIES}")
-set_property(TARGET zero_13small_selfplay PROPERTY CXX_STANDARD 17)
+set_property(TARGET zero_13small_selfplay PROPERTY CXX_STANDARD 26)
 
 if (MSVC)
   file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
@@ -83,7 +83,7 @@ target_link_libraries(zero_13small_selfplay CLI11::CLI11)
 add_executable(vs_zero_13small vs_zero_9small.cpp)
 
 target_link_libraries(vs_zero_13small "${TORCH_LIBRARIES}")
-set_property(TARGET vs_zero_13small PROPERTY CXX_STANDARD 17)
+set_property(TARGET vs_zero_13small PROPERTY CXX_STANDARD 26)
 
 if (MSVC)
   file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")

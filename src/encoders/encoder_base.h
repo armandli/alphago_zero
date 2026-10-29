@@ -18,7 +18,7 @@ struct StateEncoderBase {
   EType encode_state(const GameState& gs, t::Device device) const {
     return static_cast<const Sub*>(this)->encode_state(gs, device);
   }
-  TensorDimP state_size() const {
+  [[nodiscard]] TensorDimP state_size() const {
     return static_cast<const Sub*>(this)->state_size();
   }
 };
@@ -37,7 +37,7 @@ struct ActionEncoderBase {
   Move idx_to_move(uint idx) const {
     return static_cast<const Sub*>(this)->idx_to_move(idx);
   }
-  static constexpr uint action_size() {
+  [[nodiscard]] static consteval uint action_size() {
     return Sub::action_size();
   }
 };

@@ -111,12 +111,13 @@ int main(int argc, char* argv[]) {
       status = "Game over. Press Reset to start a new game.";
       return;
     }
-    R::Move move = R::string_to_move(move_input, SZ);
+    auto opt_move = R::string_to_move(move_input, SZ);
     move_input.clear();
-    if (move.mty == R::M::Unknown) {
+    if (not opt_move) {
       status = "Invalid format — use column letter + row number, e.g. E5.";
       return;
     }
+    R::Move move = *opt_move;
     if (not game_state.is_valid_move(move)) {
       status = "Illegal move on this board. Try again.";
       return;

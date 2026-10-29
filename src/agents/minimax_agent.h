@@ -6,6 +6,7 @@
 #include <ctime>
 #include <vector>
 #include <random>
+#include <utility>
 
 #include <type_alias.h>
 #include <types.h>
@@ -32,7 +33,7 @@ struct MinimaxAgent :
     s::srand(unsigned(s::time(0)));
   }
 
-  Move select_move(const GameState& gs) {
+  [[nodiscard]] Move select_move(const GameState& gs) {
     if constexpr (ABP) {
       RRet ret = recursive_alpha_beta_minimax_search(
         gs, mDepth, MIN_SCORE, MAX_SCORE);
@@ -67,7 +68,7 @@ protected:
       return score < best_score;
 
     default:
-      assert(false);
+      s::unreachable();
     }
   }
 
@@ -79,7 +80,7 @@ protected:
       case Player::Black:   return RRet(MAX_SCORE, Move(M::Unknown));
       case Player::White:   return RRet(MIN_SCORE, Move(M::Unknown));
       case Player::Unknown: return RRet(TIE_SCORE, Move(M::Unknown));
-      default: assert(false);
+      default: s::unreachable();
       }
     }
     if (depth == 0)
@@ -96,7 +97,7 @@ protected:
       break;
 
     default:
-      assert(false);
+      s::unreachable();
     }
     for (Move m : gs.legal_moves()) {
       GameState ngs = gs;
@@ -130,7 +131,7 @@ protected:
       return score < alpha;
 
     default:
-      assert(false);
+      s::unreachable();
     }
   }
 
@@ -158,7 +159,7 @@ protected:
       case Player::Black:   return RRet(MAX_SCORE, Move(M::Unknown));
       case Player::White:   return RRet(MIN_SCORE, Move(M::Unknown));
       case Player::Unknown: return RRet(TIE_SCORE, Move(M::Unknown));
-      default: assert(false);
+      default: s::unreachable();
       }
     }
     if (depth == 0)
@@ -175,7 +176,7 @@ protected:
       break;
 
     default:
-      assert(false);
+      s::unreachable();
     }
     for (Move m : gs.legal_moves()) {
       if (should_prune(best_score, alpha, beta, gs.next_player()))
@@ -203,7 +204,7 @@ protected:
           break;
 
         default:
-          assert(false);
+          s::unreachable();
         }
       } else if (val.score == best_score)
         best_moves.push_back(m);

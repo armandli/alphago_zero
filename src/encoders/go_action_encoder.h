@@ -49,7 +49,7 @@ struct ZeroGoActionEncoder :
     if (idx >= SZ * SZ) return Move(M::Pass);
     else                return Move(M::Play, point<SZ>(idx));
   }
-  static constexpr uint action_size() { return SZ * SZ + 1; }
+  [[nodiscard]] static consteval uint action_size() { return SZ * SZ + 1; }
 
 private:
   mutable float mAction[SZ * SZ + 1];

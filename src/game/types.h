@@ -5,6 +5,8 @@
 #include <array>
 #include <ostream>
 #include <istream>
+#include <optional>
+#include <utility>
 
 #include <type_alias.h>
 
@@ -17,15 +19,9 @@ struct Pt {
 
   Pt() = default;
   Pt(ubyte r, ubyte c): r(r), c(c) {}
+
+  auto operator<=>(const Pt&) const = default;
 };
-
-bool operator==(Pt a, Pt b) {
-  return a.r == b.r and a.c == b.c;
-}
-
-bool operator!=(Pt a, Pt b) {
-  return not operator==(a, b);
-}
 
 using Neighbours = s::array<Pt, 4>;
 
@@ -140,23 +136,23 @@ s::ostream& operator<<(s::ostream& out, Move m) {
 
   case M::Unknown:
   default:
-    assert(false);
+    s::unreachable();
   }
   return out;
 }
 
-Move string_to_move(const s::string& str) {
-  if (str.size() < 2) return Move(M::Unknown);
+[[nodiscard]] s::optional<Move> string_to_move(const s::string& str) {
+  if (str.size() < 2) return s::nullopt;
   char colstr = str[0];
   s::string rowstr = str.substr(1);
   int colidx, rowidx;
   if (s::isupper(colstr)) {
-    if (colstr == 'I') return Move(M::Unknown);
+    if (colstr == 'I') return s::nullopt;
     colidx = colstr - 'A';
     if (colstr >= 'J')
       colidx -= 1;
   } else {
-    if (colstr == 'i') return Move(M::Unknown);
+    if (colstr == 'i') return s::nullopt;
     colidx = colstr - 'a';
     if (colstr >= 'j')
       colidx -= 1;
@@ -164,26 +160,28 @@ Move string_to_move(const s::string& str) {
   try {
     rowidx = s::stoi(rowstr) - 1;
   } catch (s::invalid_argument& err) {
-    return Move(M::Unknown);
+    return s::nullopt;
   }
   return Move(M::Play, Pt(rowidx, colidx));
 }
 
 s::istream& operator>>(s::istream& in, Move& m) {
   s::string str; in >> str;
-  m = string_to_move(str);
+  auto opt = string_to_move(str);
+  m = opt.value_or(Move(M::Unknown));
   return in;
 }
 
-Move string_to_move(const s::string& str, uint board_size) {
-  Move m = string_to_move(str);
-  if (m.mty == M::Play) {
-    if (m.mpt.r < board_size and m.mpt.c < board_size)
-      return m;
+[[nodiscard]] s::optional<Move> string_to_move(const s::string& str, uint board_size) {
+  auto opt = string_to_move(str);
+  if (not opt) return s::nullopt;
+  if (opt->mty == M::Play) {
+    if (opt->mpt.r < board_size and opt->mpt.c < board_size)
+      return opt;
     else
-      return Move(M::Unknown);
+      return s::nullopt;
   } else
-    return m;
+    return opt;
 }
 
 enum class Player : ubyte {
@@ -193,7 +191,7 @@ enum class Player : ubyte {
 };
 
 [[gnu::always_inline]] Player other_player(Player player) {
-  return (Player)((ubyte)player ^ 0x3U);
+  return static_cast<Player>(s::to_underlying(player) ^ 0x3U);
 }
 
 s::ostream& operator<<(s::ostream& out, Player player) {
@@ -208,7 +206,7 @@ s::ostream& operator<<(s::ostream& out, Player player) {
 
   case Player::Unknown:
   default:
-    assert(false);
+    s::unreachable();
   }
   return out;
 }

@@ -2,7 +2,7 @@
 add_executable(zero_9small_tui zero_9small_tui.cpp)
 
 target_link_libraries(zero_9small_tui "${TORCH_LIBRARIES}")
-set_property(TARGET zero_9small_tui PROPERTY CXX_STANDARD 17)
+set_property(TARGET zero_9small_tui PROPERTY CXX_STANDARD 26)
 
 if (MSVC)
   file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")

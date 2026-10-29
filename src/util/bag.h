@@ -34,9 +34,9 @@ public:
     return *this;
   }
 
-  size_t size() const { return mVec.size(); }
+  [[nodiscard]] size_t size() const { return mVec.size(); }
   void reserve(size_t sz) { mVec.reserve(sz); }
-  bool empty() const { return mVec.empty(); }
+  [[nodiscard]] bool empty() const { return mVec.empty(); }
 
   ref operator[](size_t i) {
     assert(i < mVec.size());

@@ -6,6 +6,7 @@
 #include <array>
 #include <vector>
 #include <ostream>
+#include <utility>
 
 #include <type_alias.h>
 #include <types.h>
@@ -23,7 +24,7 @@ struct TTTBoard_<3> : Board<TTTBoard_<3>> {
   static constexpr uint IZ   = SIZE * SIZE;
 
   TTTBoard_() {
-    s::memset(&mBoard[0], (ubyte)Player::Unknown, IZ * sizeof(ubyte));
+    mBoard.fill(Player::Unknown);
   }
   TTTBoard_(const TTTBoard_& o): mBoard(o.mBoard) {}
   TTTBoard_& operator=(const TTTBoard_& o) {
@@ -73,7 +74,7 @@ struct TTTBoard_<3> : Board<TTTBoard_<3>> {
           break;
 
         default:
-          assert(false);
+          s::unreachable();
         }
         out << ' ';
       }
@@ -140,7 +141,7 @@ struct TTTGameState : public GameState<TTTBoard, TTTGameState> {
       break;
 
     default:
-      assert(false);
+      s::unreachable();
     }
     return empty_positions() == 0U;
   }
@@ -178,7 +179,7 @@ struct TTTGameState : public GameState<TTTBoard, TTTGameState> {
       else                return Player::Unknown;
 
     default:
-      assert(false);
+      s::unreachable();
     }
   }
 

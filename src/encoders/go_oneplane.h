@@ -2,6 +2,7 @@
 #define RLGAMES_GO_ONEPLANE
 
 #include <cassert>
+#include <utility>
 
 #include <torch/torch.h>
 
@@ -13,6 +14,7 @@
 
 namespace rlgames {
 
+namespace s = std;
 namespace t = torch;
 
 // Encodes the board as a single SZ-by-SZ input plane.
@@ -43,7 +45,7 @@ struct OnePlaneGoStateEncoder :
           break;
 
         default:
-          assert(false);
+          s::unreachable();
         }
       }
     t::Tensor m = t::from_blob(mState, {(sint)SZ, (sint)SZ});
@@ -52,7 +54,7 @@ struct OnePlaneGoStateEncoder :
     else
       return m.clone();
   }
-  TensorDimP state_size() const {
+  [[nodiscard]] TensorDimP state_size() const {
     return TensorDimP(TensorDim(SZ, SZ), TensorDim(0));
   }
 

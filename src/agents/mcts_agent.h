@@ -9,6 +9,7 @@
 #include <set>
 #include <vector>
 #include <algorithm>
+#include <utility>
 
 #include <type_alias.h>
 #include <types.h>
@@ -41,7 +42,7 @@ struct MCTSAgent :
     mGen = RGen(rand());
   }
 
-  Move select_move(const GameState& gs) {
+  [[nodiscard]] Move select_move(const GameState& gs) {
     GameState gs_copy = gs;  // explicit copy to reduce total copying
     if (mCache.size() == 0) {
       size_t sz = gs_copy.board().size();
@@ -112,7 +113,7 @@ protected:
       case Player::Black:   score += MAX_SCORE; break;
       case Player::White:   score += MIN_SCORE; break;
       case Player::Unknown: score += TIE_SCORE; break;
-      default: assert(false);
+      default: s::unreachable();
       }
     }
     return score;
@@ -122,7 +123,7 @@ protected:
     switch (player) {
     case Player::Black: return score > best_score;
     case Player::White: return score < best_score;
-    default: assert(false);
+    default: s::unreachable();
     }
   }
 
@@ -130,7 +131,7 @@ protected:
     switch (player) {
     case Player::Black: return MIN_SCORE;
     case Player::White: return MAX_SCORE;
-    default: assert(false);
+    default: s::unreachable();
     }
   }
 

@@ -8,6 +8,7 @@
 #include <iostream>
 #include <filesystem>
 #include <algorithm>
+#include <print>
 
 #include <CLI/CLI.hpp>
 
@@ -67,7 +68,7 @@ int main(int argc, char* argv[]) {
 
   t::Device device(t::kCPU);
   if (t::cuda::is_available()) {
-    s::cout << "Using GPU" << s::endl;
+    s::println("Using GPU");
     device = t::Device(t::kCUDA);
   }
 
@@ -96,7 +97,7 @@ int main(int argc, char* argv[]) {
   if (s::filesystem::exists(model_file)
       and s::filesystem::exists(optimizer_file))
   {
-    s::cout << "Using saved model and optimizer parameters" << s::endl;
+    s::println("Using saved model and optimizer parameters");
     R::load_model(model_container, model_file, optimizer_file, device);
   }
 
@@ -171,7 +172,7 @@ int main(int argc, char* argv[]) {
           break;
 
         default:
-          assert(false);
+          s::unreachable();
         }
         state.apply_move(move);
         step_count++;
@@ -200,26 +201,25 @@ int main(int argc, char* argv[]) {
         break;
 
       default:
-        assert(false);
+        s::unreachable();
       }
 
       auto gstop = c::high_resolution_clock::now();
       auto duration = c::duration_cast<c::microseconds>(gstop - gstart);
 
-      s::cout << "Game time: " << duration.count()
-              << " microseconds" << s::endl;
+      s::println("Game time: {} microseconds", duration.count());
 
       R::append_experiences(experience, buffer1, buffer2);
     }
     float loss = train(model_container, experience);
 
     if (i % reporting_interval == 0)
-      s::cout << "Episode " << i << ". Loss " << loss << s::endl;
+      s::println("Episode {}. Loss {}", i, loss);
 
     losses.push_back(loss);
   }
 
-  s::cout << "Self play complete. Saving training and result." << s::endl;
+  s::println("Self play complete. Saving training and result.");
 
   R::save_model(model_container, model_file, optimizer_file);
 
