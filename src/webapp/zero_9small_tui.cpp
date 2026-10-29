@@ -33,8 +33,18 @@ namespace f = ftxui;
 
 constexpr ubyte SZ = 9;
 constexpr uint action_size = R::ZeroGoActionEncoder<SZ>::action_size();
-using ModelContainerType = R::ModelContainer<R::ZeroModelSmall, R::ZeroGoStateEncoder<SZ>, R::ZeroGoActionEncoder<SZ>, t::optim::Adam>;
-using AgentType = R::ZeroAgent<ModelContainerType, R::null_distribution<action_size>, R::Splitmix, R::GoBoard<SZ>, R::GoGameState<SZ>, action_size>;
+using ModelContainerType = R::ModelContainer<
+  R::ZeroModelSmall,
+  R::ZeroGoStateEncoder<SZ>,
+  R::ZeroGoActionEncoder<SZ>,
+  t::optim::Adam>;
+using AgentType = R::ZeroAgent<
+  ModelContainerType,
+  R::null_distribution<action_size>,
+  R::Splitmix,
+  R::GoBoard<SZ>,
+  R::GoGameState<SZ>,
+  action_size>;
 
 int main(int argc, char* argv[]) {
   s::string model_config_file;
@@ -42,9 +52,15 @@ int main(int argc, char* argv[]) {
   s::string optimizer_file;
 
   CLI::App cli{"AlphaGo Zero 9x9 — terminal UI"};
-  cli.add_option("-c,--model-config", model_config_file, "Model configuration file")->required()->check(CLI::ExistingFile);
-  cli.add_option("-m,--model",        model_file,        "Model checkpoint file")->required()->check(CLI::ExistingFile);
-  cli.add_option("-o,--optimizer",    optimizer_file,    "Optimizer checkpoint file")->required()->check(CLI::ExistingFile);
+  cli.add_option("-c,--model-config",
+    model_config_file,
+    "Model configuration file")->required()->check(CLI::ExistingFile);
+  cli.add_option("-m,--model",
+    model_file,
+    "Model checkpoint file")->required()->check(CLI::ExistingFile);
+  cli.add_option("-o,--optimizer",
+    optimizer_file,
+    "Optimizer checkpoint file")->required()->check(CLI::ExistingFile);
   CLI11_PARSE(cli, argc, argv);
 
   srand(time(nullptr));
@@ -58,7 +74,10 @@ int main(int argc, char* argv[]) {
   R::TensorDimP state_size = state_encoder.state_size();
 
   ModelContainerType model_container(
-    R::ZeroModelSmall(state_size, action_size, R::load_model_option<R::ZeroModelSmallOptions>(model_config_file)),
+    R::ZeroModelSmall(
+      state_size,
+      action_size,
+      R::load_model_option<R::ZeroModelSmallOptions>(model_config_file)),
     s::move(state_encoder),
     s::move(action_encoder),
     1E-5F
@@ -70,7 +89,8 @@ int main(int argc, char* argv[]) {
 
   R::GoGameState<SZ> game_state;
   s::string move_input;
-  s::string status = "You play Black.  Enter a move (e.g. E5) and press Play or Enter.";
+  s::string status =
+    "You play Black.  Enter a move (e.g. E5) and press Play or Enter.";
 
   auto render_board = [&]() -> f::Element {
     s::ostringstream ss;
@@ -97,12 +117,12 @@ int main(int argc, char* argv[]) {
       status = "Invalid format — use column letter + row number, e.g. E5.";
       return;
     }
-    if (!game_state.is_valid_move(move)) {
+    if (not game_state.is_valid_move(move)) {
       status = "Illegal move on this board. Try again.";
       return;
     }
     game_state.apply_move(move);
-    if (!game_state.is_over()) {
+    if (not game_state.is_over()) {
       R::Move ai_move = agent.select_move(game_state);
       game_state.apply_move(ai_move);
     }
@@ -119,7 +139,8 @@ int main(int argc, char* argv[]) {
   auto on_reset = [&]() {
     game_state = R::GoGameState<SZ>();
     move_input.clear();
-    status = "You play Black.  Enter a move (e.g. E5) and press Play or Enter.";
+    status =
+      "You play Black.  Enter a move (e.g. E5) and press Play or Enter.";
   };
 
   auto input     = f::Input(&move_input, "e.g. E5");
@@ -144,7 +165,13 @@ int main(int argc, char* argv[]) {
       render_board(),
       f::separator(),
       f::hbox({f::text(" Move: "), input->Render() | f::flex}),
-      f::hbox({play_btn->Render(), f::text(" "), reset_btn->Render(), f::text(" "), quit_btn->Render()}),
+      f::hbox({
+        play_btn->Render(),
+        f::text(" "),
+        reset_btn->Render(),
+        f::text(" "),
+        quit_btn->Render(),
+      }),
       f::text(" " + status),
     }) | f::border;
   });

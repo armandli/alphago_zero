@@ -1,35 +1,35 @@
 #ifndef RLGAMES_GO_ONEPLANE
 #define RLGAMES_GO_ONEPLANE
 
+#include <cassert>
+
+#include <torch/torch.h>
+
 #include <type_alias.h>
 #include <types.h>
 #include <game_base.h>
 #include <go_types.h>
 #include <encoder_base.h>
 
-#include <torch/torch.h>
-
-#include <cassert>
-
 namespace rlgames {
 
 namespace t = torch;
 
-//encode the board as SZ-by-SZ dimensional input plane
+// Encodes the board as a single SZ-by-SZ input plane.
 template <ubyte SZ>
-class OnePlaneGoStateEncoder : public StateEncoderBase<GoGameState<SZ>, t::Tensor, OnePlaneGoStateEncoder<SZ>> {
-  mutable float mState[SZ * SZ];
-
-  constexpr uint plane_size() const {
-    return SZ * SZ;
-  }
-public:
-  t::Tensor encode_state(const GoGameState<SZ>& gs, t::Device device) const {
+struct OnePlaneGoStateEncoder :
+    public StateEncoderBase<
+      GoGameState<SZ>, t::Tensor, OnePlaneGoStateEncoder<SZ>>
+{
+  t::Tensor encode_state(
+      const GoGameState<SZ>& gs,
+      t::Device device) const
+  {
     const GoBoard<SZ>& board = gs.board();
     for (uint i = 0; i < SZ; ++i)
-      for (uint j = 0; j < SZ; ++j){
+      for (uint j = 0; j < SZ; ++j) {
         Pt pt(i, j);
-        switch (board.get(pt)){
+        switch (board.get(pt)) {
         case Player::Black:
         case Player::White:
           if (board.get(Pt(i, j)) == gs.next_player())
@@ -37,10 +37,13 @@ public:
           else
             mState[index<SZ>(pt)] = -1.f;
           break;
+
         case Player::Unknown:
           mState[index<SZ>(pt)] = 0.f;
           break;
-        default: assert(false);
+
+        default:
+          assert(false);
         }
       }
     t::Tensor m = t::from_blob(mState, {(sint)SZ, (sint)SZ});
@@ -52,8 +55,13 @@ public:
   TensorDimP state_size() const {
     return TensorDimP(TensorDim(SZ, SZ), TensorDim(0));
   }
+
+private:
+  mutable float mState[SZ * SZ];
+
+  constexpr uint plane_size() const { return SZ * SZ; }
 };
 
-} //rlgames
+}  // namespace rlgames
 
-#endif//RLGAMES_GO_ONEPLANE
+#endif  // RLGAMES_GO_ONEPLANE

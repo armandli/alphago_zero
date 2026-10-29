@@ -20,15 +20,13 @@ template <ubyte SZ> struct TTTBoard_;
 template <>
 struct TTTBoard_<3> : Board<TTTBoard_<3>> {
   static constexpr uint SIZE = 3;
-  static constexpr uint IZ = SIZE * SIZE;
-private:
-  s::array<Player, IZ> mBoard;
-public:
-  TTTBoard_(){
+  static constexpr uint IZ   = SIZE * SIZE;
+
+  TTTBoard_() {
     s::memset(&mBoard[0], (ubyte)Player::Unknown, IZ * sizeof(ubyte));
   }
   TTTBoard_(const TTTBoard_& o): mBoard(o.mBoard) {}
-  TTTBoard_& operator=(const TTTBoard_& o){
+  TTTBoard_& operator=(const TTTBoard_& o) {
     mBoard = o.mBoard;
     return *this;
   }
@@ -38,37 +36,44 @@ public:
     return *this;
   }
 
-  bool is_on_grid(Pt pt) const {
-    if (pt.r < SIZE && pt.c < SIZE) return true;
-    else                            return false;
-  }
+  bool is_on_grid(Pt pt) const { return pt.r < SIZE and pt.c < SIZE; }
+
   Player get(Pt pt) const {
     assert(is_on_grid(pt));
 
     return mBoard[index<SIZE>(pt)];
   }
-  void place_stone(Player player, Pt pt){
+  void place_stone(Player player, Pt pt) {
     assert(is_on_grid(pt));
     assert(get(pt) == Player::Unknown);
 
     mBoard[index<SIZE>(pt)] = player;
   }
-  size_t size() const {
-    return SIZE;
-  }
+  size_t size() const { return SIZE; }
+
   s::ostream& print(s::ostream& out) const {
     char bchar = 'x';
     char wchar = 'o';
 
-    for (ubyte i = 0; i < SIZE; ++i){
+    for (ubyte i = 0; i < SIZE; ++i) {
       out << (int)i << ' ';
-      for (ubyte j = 0; j < SIZE; ++j){
+      for (ubyte j = 0; j < SIZE; ++j) {
         Player color = get(Pt(i, j));
-        switch (color){
-        case Player::Black: out << bchar; break;
-        case Player::White: out << wchar; break;
-        case Player::Unknown: out << ' '; break;
-        default: assert(false);
+        switch (color) {
+        case Player::Black:
+          out << bchar;
+          break;
+
+        case Player::White:
+          out << wchar;
+          break;
+
+        case Player::Unknown:
+          out << ' ';
+          break;
+
+        default:
+          assert(false);
         }
         out << ' ';
       }
@@ -77,9 +82,12 @@ public:
     out << "  A B C\n";
     return out;
   }
+
+private:
+  s::array<Player, IZ> mBoard;
 };
 
-s::ostream& operator<<(s::ostream& out, const TTTBoard_<3>& board){
+s::ostream& operator<<(s::ostream& out, const TTTBoard_<3>& board) {
   return board.print(out);
 }
 
@@ -87,52 +95,30 @@ using TTTBoard = TTTBoard_<3>;
 
 struct TTTGameState : public GameState<TTTBoard, TTTGameState> {
   static constexpr uint SIZE = 3;
-  static constexpr uint IZ = 9;
-private:
-  TTTBoard mBoard;
-  Player   mNPlayer;
-  Move     mPMove;
+  static constexpr uint IZ   = 9;
 
-protected:
-  bool is_connected() const {
-    assert(mPMove.mty == M::Play);
-    Pt pt = mPMove.mpt;
-    Player player = other_player(mNPlayer);
-    size_t rsum = 0, csum = 0, dfsum = 0, drsum = 0;
-    for (size_t i = 0; i < 3; ++i){
-      rsum += mBoard.get(Pt(i, pt.c)) == player;
-      csum += mBoard.get(Pt(pt.r, i)) == player;
-      dfsum += mBoard.get(Pt(i, i)) == player;
-      drsum += mBoard.get(Pt(i, 2 - i)) == player;
-    }
-    if (rsum == 3 || csum == 3 || dfsum == 3 || drsum == 3) return true;
-    else                                                    return false;
-  }
-  uint empty_positions() const {
-    uint count = 0;
-    for (uint i = 0; i < IZ; ++i)
-      if (mBoard.get(point<SIZE>(i)) == Player::Unknown)
-        count++;
-    return count;
-  }
-public:
   TTTGameState(): mBoard(), mNPlayer(Player::Black), mPMove(M::Unknown) {}
   TTTGameState(const TTTBoard& board, Player nplayer, Move move):
-    mBoard(board), mNPlayer(nplayer), mPMove(move) {}
+    mBoard(board), mNPlayer(nplayer), mPMove(move)
+  {}
   TTTGameState(const TTTGameState& o):
-    mBoard(o.mBoard), mNPlayer(o.mNPlayer), mPMove(o.mPMove) {}
-  TTTGameState& operator=(const TTTGameState& o){
-    mBoard = o.mBoard;
+    mBoard(o.mBoard), mNPlayer(o.mNPlayer), mPMove(o.mPMove)
+  {}
+  TTTGameState& operator=(const TTTGameState& o) {
+    mBoard   = o.mBoard;
     mNPlayer = o.mNPlayer;
-    mPMove = o.mPMove;
+    mPMove   = o.mPMove;
     return *this;
   }
   TTTGameState(TTTGameState&& o) noexcept :
-    mBoard(s::move(o.mBoard)), mNPlayer(o.mNPlayer), mPMove(o.mPMove) {}
+    mBoard(s::move(o.mBoard)),
+    mNPlayer(o.mNPlayer),
+    mPMove(o.mPMove)
+  {}
   TTTGameState& operator=(TTTGameState&& o) noexcept {
-    mBoard = s::move(o.mBoard);
+    mBoard   = s::move(o.mBoard);
     mNPlayer = o.mNPlayer;
-    mPMove = o.mPMove;
+    mPMove   = o.mPMove;
     return *this;
   }
 
@@ -141,23 +127,27 @@ public:
   Move previous_move() const { return mPMove; }
 
   bool is_over() const {
-    switch (mPMove.mty){
+    switch (mPMove.mty) {
     case M::Unknown:
       return false;
+
     case M::Pass:
     case M::Resign:
       return true;
+
     case M::Play:
       if (is_connected()) return true;
       break;
-    default: assert(false);
+
+    default:
+      assert(false);
     }
     return empty_positions() == 0U;
   }
 
   bool is_valid_move(Move move) const {
-    if (is_over())                                    return false;
-    if (move.mty == M::Pass || move.mty == M::Resign) return true;
+    if (is_over())                                          return false;
+    if (move.mty == M::Pass or move.mty == M::Resign)       return true;
     return mBoard.get(move.mpt) == Player::Unknown;
   }
 
@@ -166,7 +156,7 @@ public:
 
     s::vector<Move> ret;
     ret.reserve(10);
-    for (size_t i = 0; i < TTTBoard::IZ; ++i){
+    for (size_t i = 0; i < TTTBoard::IZ; ++i) {
       if (mBoard.get(point<TTTBoard::SIZE>(i)) == Player::Unknown)
         ret.push_back(Move(M::Play, point<TTTBoard::SIZE>(i)));
     }
@@ -175,30 +165,62 @@ public:
   }
 
   Player winner() const {
-    switch (mPMove.mty){
+    switch (mPMove.mty) {
     case M::Unknown:
       return Player::Unknown;
+
     case M::Pass:
     case M::Resign:
       return mNPlayer;
+
     case M::Play:
       if (is_connected()) return other_player(mNPlayer);
       else                return Player::Unknown;
-    default: assert(false);
+
+    default:
+      assert(false);
     }
   }
 
-  TTTGameState& apply_move(Move move){
+  TTTGameState& apply_move(Move move) {
     assert(is_over() == false);
 
     if (move.mty == M::Play)
       mBoard.place_stone(mNPlayer, move.mpt);
-    mPMove = move;
+    mPMove   = move;
     mNPlayer = other_player(mNPlayer);
     return *this;
   }
+
+protected:
+  bool is_connected() const {
+    assert(mPMove.mty == M::Play);
+    Pt pt = mPMove.mpt;
+    Player player = other_player(mNPlayer);
+    size_t rsum = 0, csum = 0, dfsum = 0, drsum = 0;
+    for (size_t i = 0; i < 3; ++i) {
+      rsum  += mBoard.get(Pt(i, pt.c)) == player;
+      csum  += mBoard.get(Pt(pt.r, i)) == player;
+      dfsum += mBoard.get(Pt(i, i)) == player;
+      drsum += mBoard.get(Pt(i, 2 - i)) == player;
+    }
+    if (rsum == 3 or csum == 3 or dfsum == 3 or drsum == 3) return true;
+    else                                                     return false;
+  }
+  uint empty_positions() const {
+    uint count = 0;
+    for (uint i = 0; i < IZ; ++i)
+      if (mBoard.get(point<SIZE>(i)) == Player::Unknown)
+        count++;
+    return count;
+  }
+
+private:
+  TTTBoard mBoard;
+  Player   mNPlayer;
+  Move     mPMove;
 };
 
-} // rlgames
+}  // namespace rlgames
 
-#endif//RLGAMES_TTT_TYPES
+#endif  // RLGAMES_TTT_TYPES

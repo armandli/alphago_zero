@@ -11,6 +11,9 @@
 
 namespace rlgames {
 
+namespace s = std;
+namespace t = torch;
+
 struct ZeroModelResnetSmallOptions {
   TensorDim              c1sz;
   TensorDim              c2sz;
@@ -24,7 +27,7 @@ struct ZeroModelResnetSmallOptions {
   ConvResnetLayerOptions c4rsz;
 
   ZeroModelResnetSmallOptions() = default;
-  ZeroModelResnetSmallOptions(const s::vector<TensorDim> dims){
+  ZeroModelResnetSmallOptions(const s::vector<TensorDim> dims) {
     assert(dims.size() == 18);
 
     c1sz = dims[0];
@@ -48,31 +51,11 @@ struct ZeroModelResnetSmallOptions {
   }
 };
 
-class ZeroModelResnetSmallImpl : public t::nn::Module {
-  ConvResnetLayerV1 c1r1, c1r2, c1r3, c1r4,
-                    c2r1, c2r2, c2r3, c2r4,
-                    c3r1, c3r2, c3r3, c3r4,
-                    c4r1, c4r2, c4r3, c4r4;
-  t::nn::Conv2d c1, c2, c3, c4, pc1, vc1;
-  t::nn::Linear pl1, vl1;
-  TensorDimP state_size;
-
-  t::Tensor featurize_state(t::Tensor state){
-    if (state.dim() == 1)
-      state = state.reshape({1, state_size.y.i});
-    return state;
-  }
-  t::Tensor featurize_board(t::Tensor board){
-    if (board.dim() == 3)
-      board = board.reshape({1, state_size.x.i, state_size.x.j, state_size.x.k});
-    board = c1r4(c1r3(c1r2(c1r1(t::relu(c1(board))))));
-    board = c2r4(c2r3(c2r2(c2r1(t::relu(c2(board))))));
-    board = c3r4(c3r3(c3r2(c3r1(t::relu(c3(board))))));
-    board = c4r4(c4r3(c4r2(c4r1(t::relu(c4(board))))));
-    return board;
-  }
-public:
-  explicit ZeroModelResnetSmallImpl(TensorDimP ssz, uint asz, const ZeroModelResnetSmallOptions& opt):
+struct ZeroModelResnetSmallImpl : public t::nn::Module {
+  explicit ZeroModelResnetSmallImpl(
+      TensorDimP ssz,
+      uint asz,
+      const ZeroModelResnetSmallOptions& opt):
     c1r1(register_module("c1r1", ConvResnetLayerV1(opt.c1rsz))),
     c1r2(register_module("c1r2", ConvResnetLayerV1(opt.c1rsz))),
     c1r3(register_module("c1r3", ConvResnetLayerV1(opt.c1rsz))),
@@ -89,38 +72,81 @@ public:
     c4r2(register_module("c4r2", ConvResnetLayerV1(opt.c4rsz))),
     c4r3(register_module("c4r3", ConvResnetLayerV1(opt.c4rsz))),
     c4r4(register_module("c4r4", ConvResnetLayerV1(opt.c4rsz))),
-    c1(register_module("c1", t::nn::Conv2d(t::nn::Conv2dOptions(ssz.x.i, opt.c1sz.i, opt.c1sz.j)))),
-    c2(register_module("c2", t::nn::Conv2d(t::nn::Conv2dOptions(opt.c1sz.i, opt.c2sz.i, opt.c2sz.j)))),
-    c3(register_module("c3", t::nn::Conv2d(t::nn::Conv2dOptions(opt.c2sz.i, opt.c3sz.i, opt.c3sz.j)))),
-    c4(register_module("c4", t::nn::Conv2d(t::nn::Conv2dOptions(opt.c3sz.i, opt.c4sz.i, opt.c4sz.j)))),
-    pc1(register_module("pc1", t::nn::Conv2d(t::nn::Conv2dOptions(opt.c4sz.i, opt.pc1sz.i, opt.pc1sz.j)))),
-    vc1(register_module("vc1", t::nn::Conv2d(t::nn::Conv2dOptions(opt.c4sz.i, opt.vc1sz.i, opt.vc1sz.j)))),
+    c1(register_module("c1",
+      t::nn::Conv2d(
+        t::nn::Conv2dOptions(ssz.x.i, opt.c1sz.i, opt.c1sz.j)))),
+    c2(register_module("c2",
+      t::nn::Conv2d(
+        t::nn::Conv2dOptions(opt.c1sz.i, opt.c2sz.i, opt.c2sz.j)))),
+    c3(register_module("c3",
+      t::nn::Conv2d(
+        t::nn::Conv2dOptions(opt.c2sz.i, opt.c3sz.i, opt.c3sz.j)))),
+    c4(register_module("c4",
+      t::nn::Conv2d(
+        t::nn::Conv2dOptions(opt.c3sz.i, opt.c4sz.i, opt.c4sz.j)))),
+    pc1(register_module("pc1",
+      t::nn::Conv2d(
+        t::nn::Conv2dOptions(opt.c4sz.i, opt.pc1sz.i, opt.pc1sz.j)))),
+    vc1(register_module("vc1",
+      t::nn::Conv2d(
+        t::nn::Conv2dOptions(opt.c4sz.i, opt.vc1sz.i, opt.vc1sz.j)))),
     pl1(register_module("pl1",
       t::nn::Linear(
-        (ssz.x.j - opt.c1sz.j - opt.c2sz.j - opt.c3sz.j - opt.c4sz.j - opt.pc1sz.j + 5) *
-        (ssz.x.k - opt.c1sz.k - opt.c2sz.k - opt.c3sz.k - opt.c4sz.k - opt.pc1sz.k + 5) *
+        (ssz.x.j - opt.c1sz.j - opt.c2sz.j - opt.c3sz.j
+          - opt.c4sz.j - opt.pc1sz.j + 5) *
+        (ssz.x.k - opt.c1sz.k - opt.c2sz.k - opt.c3sz.k
+          - opt.c4sz.k - opt.pc1sz.k + 5) *
         opt.pc1sz.i + ssz.y.i,
-      asz))),
+        asz))),
     vl1(register_module("vl1",
       t::nn::Linear(
-        (ssz.x.j - opt.c1sz.j - opt.c2sz.j - opt.c3sz.j - opt.c4sz.j - opt.vc1sz.j + 5) *
-        (ssz.x.k - opt.c1sz.k - opt.c2sz.k - opt.c3sz.k - opt.c4sz.k - opt.vc1sz.k + 5) *
+        (ssz.x.j - opt.c1sz.j - opt.c2sz.j - opt.c3sz.j
+          - opt.c4sz.j - opt.vc1sz.j + 5) *
+        (ssz.x.k - opt.c1sz.k - opt.c2sz.k - opt.c3sz.k
+          - opt.c4sz.k - opt.vc1sz.k + 5) *
         opt.vc1sz.i + ssz.y.i,
-      1))),
-    state_size(ssz)
+        1))),
+    mStateSize(ssz)
   {}
-  TensorP forward(TensorP state){
+
+  TensorP forward(TensorP state) {
     state.x = featurize_board(state.x);
     state.y = featurize_state(state.y);
     t::Tensor q = t::relu(pc1(state.x));
-    q = t::softmax(pl1(t::cat({q.flatten(1, -1), state.y}, -1)), -1);
+    q = t::softmax(
+      pl1(t::cat({q.flatten(1, -1), state.y}, -1)), -1);
     t::Tensor v = t::relu(vc1(state.x));
     v = t::tanh(vl1(t::cat({v.flatten(1, -1), state.y}, -1)));
     return TensorP(q.squeeze(), v.squeeze());
   }
+
+private:
+  ConvResnetLayerV1 c1r1, c1r2, c1r3, c1r4,
+                    c2r1, c2r2, c2r3, c2r4,
+                    c3r1, c3r2, c3r3, c3r4,
+                    c4r1, c4r2, c4r3, c4r4;
+  t::nn::Conv2d  c1, c2, c3, c4, pc1, vc1;
+  t::nn::Linear  pl1, vl1;
+  TensorDimP     mStateSize;
+
+  t::Tensor featurize_state(t::Tensor state) {
+    if (state.dim() == 1)
+      state = state.reshape({1, mStateSize.y.i});
+    return state;
+  }
+  t::Tensor featurize_board(t::Tensor board) {
+    if (board.dim() == 3)
+      board = board.reshape(
+        {1, mStateSize.x.i, mStateSize.x.j, mStateSize.x.k});
+    board = c1r4(c1r3(c1r2(c1r1(t::relu(c1(board))))));
+    board = c2r4(c2r3(c2r2(c2r1(t::relu(c2(board))))));
+    board = c3r4(c3r3(c3r2(c3r1(t::relu(c3(board))))));
+    board = c4r4(c4r3(c4r2(c4r1(t::relu(c4(board))))));
+    return board;
+  }
 };
 TORCH_MODULE(ZeroModelResnetSmall);
 
-} // rlgames
+}  // namespace rlgames
 
-#endif//RLGAMES_ZERO_MODEL_RESNET_SMALL
+#endif  // RLGAMES_ZERO_MODEL_RESNET_SMALL

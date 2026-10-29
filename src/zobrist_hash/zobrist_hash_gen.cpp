@@ -11,16 +11,16 @@
 namespace s = std;
 namespace R = rlgames;
 
-// generate perfect hash for each player point combination
+// generate perfect hash for each player-point combination
 
 namespace {
-std::default_random_engine& get_default_random_engine(){
+std::default_random_engine& get_default_random_engine() {
   static std::default_random_engine engine(time(0));
   return engine;
 }
-} //namespace
+}  // namespace
 
-void generate_file_include(s::fstream& out){
+void generate_file_include(s::fstream& out) {
   out << "/* This file is auto-generated */\n";
   out << "#ifndef RLGAMES_ZOBRIST_HASH\n";
   out << "#define RLGAMES_ZOBRIST_HASH\n";
@@ -33,15 +33,17 @@ void generate_file_include(s::fstream& out){
   out << "\n";
 }
 
-unsigned get_next_value(s::uniform_int_distribution<unsigned>& dist, s::unordered_set<unsigned>& used){
+unsigned get_next_value(
+    s::uniform_int_distribution<unsigned>& dist,
+    s::unordered_set<unsigned>& used)
+{
   unsigned value = dist(get_default_random_engine());
-  while (used.find(value) != used.end()){
+  while (used.find(value) != used.end())
     value = dist(get_default_random_engine());
-  }
   return value;
 }
 
-void generate_hash_table(s::fstream& out){
+void generate_hash_table(s::fstream& out) {
   s::uniform_int_distribution<uint> dist(0x10000000U, 0xFFFFFFFFU);
   s::unordered_set<uint> used;
 
@@ -54,19 +56,21 @@ void generate_hash_table(s::fstream& out){
   out << "  switch (key){\n";
 
   out << std::hex;
-  for (uint i = 0; i < 19 * 19; ++i){
+  for (uint i = 0; i < 19 * 19; ++i) {
     uint value = ((uint)R::Player::Black) << 16U;
     value |= i;
     uint hash_value = get_next_value(dist, used);
     used.insert(hash_value);
-  out << "    case 0x" << value << "U: return 0x" << hash_value << "U; break;\n";
+    out << "    case 0x" << value
+        << "U: return 0x" << hash_value << "U; break;\n";
   }
-  for (uint i = 0; i < 19 * 19; ++i){
+  for (uint i = 0; i < 19 * 19; ++i) {
     uint value = ((uint)R::Player::White) << 16U;
     value |= i;
     uint hash_value = get_next_value(dist, used);
     used.insert(hash_value);
-  out << "    case 0x" << value << "U: return 0x" << hash_value << "U; break;\n";
+    out << "    case 0x" << value
+        << "U: return 0x" << hash_value << "U; break;\n";
   }
   out << "    default: assert(false);\n";
 
@@ -74,7 +78,7 @@ void generate_hash_table(s::fstream& out){
   out << "}\n";
 }
 
-void generate_file_suffix(s::fstream& out){
+void generate_file_suffix(s::fstream& out) {
   out << "\n";
   out << "constexpr uint EMPTY_BOARD = 0U;\n";
   out << "\n";
@@ -82,8 +86,8 @@ void generate_file_suffix(s::fstream& out){
   out << "#endif//RLGAMES_ZOBRIST_HASH\n";
 }
 
-int main(int argc, char* argv[]){
-  if (argc != 2){
+int main(int argc, char* argv[]) {
+  if (argc != 2) {
     s::cout << "Usage: " << argv[0] << " <filename>" << s::endl;
     exit(1);
   }

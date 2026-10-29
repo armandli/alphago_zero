@@ -11,7 +11,7 @@ namespace rlgames {
 
 namespace s = std;
 
-Move parse_move(uint board_size){
+Move parse_move(uint board_size) {
   s::string input;
   do {
     s::getline(s::cin, input);
@@ -21,6 +21,6 @@ Move parse_move(uint board_size){
   } while (true);
 }
 
-} // rlgames
+}  // namespace rlgames
 
-#endif//RLGAMES_INPUT_PARSER
+#endif  // RLGAMES_INPUT_PARSER

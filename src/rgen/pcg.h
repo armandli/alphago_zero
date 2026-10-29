@@ -10,23 +10,24 @@ namespace rlgames {
 
 namespace s = std;
 
-class Pcg {
-public:
+struct Pcg {
   using result_type = uint;
   static constexpr result_type (min)() { return 0; }
   static constexpr result_type (max)() { return UINT32_MAX; }
 
-
-  Pcg(): mState(0x853C49E6748FEA9BULL), mInc(0xDA3E39CB94B95BDBULL){}
-  explicit Pcg(s::random_device &rd){
+  Pcg(): mState(0x853C49E6748FEA9BULL), mInc(0xDA3E39CB94B95BDBULL) {}
+  explicit Pcg(s::random_device& rd) {
     seed(rd);
   }
   template <typename T>
-  explicit Pcg(const T& s): mState(0x853C49E6748FEA9BULL), mInc(0xDA3E39CB94B95BDBULL) {
+  explicit Pcg(const T& s):
+    mState(0x853C49E6748FEA9BULL),
+    mInc(0xDA3E39CB94B95BDBULL)
+  {
     discard(s);
   }
 
-  void seed(s::random_device &rd){
+  void seed(s::random_device& rd) {
     uint64_t s0 = uint64_t(rd()) << 31 | uint64_t(rd());
     uint64_t s1 = uint64_t(rd()) << 31 | uint64_t(rd());
 
@@ -37,7 +38,7 @@ public:
     operator()();
   }
 
-  result_type operator()(){
+  result_type operator()() {
     uint64_t oldstate = mState;
     mState = oldstate * 6364136223846793005ULL + mInc;
     uint32_t xorshifted = uint32_t(((oldstate >> 18u) ^ oldstate) >> 27u);
@@ -45,23 +46,23 @@ public:
     return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
   }
 
-  void discard(unsigned long long n){
+  void discard(unsigned long long n) {
     for (unsigned long long i = 0; i < n; ++i)
       operator()();
   }
 
   bool operator==(const Pcg& o) const {
-    return mState == o.mState && mInc == o.mInc;
+    return mState == o.mState and mInc == o.mInc;
   }
   bool operator!=(const Pcg& o) const {
     return not this->operator==(o);
   }
+
 private:
   uint64_t mState;
   uint64_t mInc;
 };
 
-} // rlgames
+}  // namespace rlgames
 
-
-#endif//RLGAMES_PCG
+#endif  // RLGAMES_PCG

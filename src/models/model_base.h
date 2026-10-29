@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <numeric>
 
 #include <pytorch_util.h>
 #include <go_zero_encoder.h>
@@ -26,21 +27,21 @@ namespace j = rapidjson;
 namespace t = torch;
 
 template <typename Option>
-Option load_model_option(const s::string& filename){
+Option load_model_option(const s::string& filename) {
   s::ifstream ifs(filename);
   j::IStreamWrapper isw(ifs);
 
   auto parse_tensordim = [](auto& obj) -> TensorDim {
     assert(obj.IsObject());
     TensorDim dimobj;
-    for (auto& dimension : obj.GetObject()){
-      if (s::strcmp(dimension.name.GetString(), "i") == 0){
+    for (auto& dimension : obj.GetObject()) {
+      if (s::strcmp(dimension.name.GetString(), "i") == 0) {
         assert(dimension.value.IsInt());
         dimobj.i = dimension.value.GetInt();
-      } else if (s::strcmp(dimension.name.GetString(), "j") == 0){
+      } else if (s::strcmp(dimension.name.GetString(), "j") == 0) {
         assert(dimension.value.IsInt());
         dimobj.j = dimension.value.GetInt();
-      } else if (s::strcmp(dimension.name.GetString(), "k") == 0){
+      } else if (s::strcmp(dimension.name.GetString(), "k") == 0) {
         assert(dimension.value.IsInt());
         dimobj.k = dimension.value.GetInt();
       }
@@ -54,11 +55,11 @@ Option load_model_option(const s::string& filename){
 
   s::vector<TensorDim> dims;
 
-  for (auto& layer : doc.GetArray()){
+  for (auto& layer : doc.GetArray()) {
     assert(layer.IsObject());
-    if (layer.HasMember("tensordim")){
+    if (layer.HasMember("tensordim")) {
       dims.push_back(parse_tensordim(layer["tensordim"]));
-    } else if (layer.HasMember("conv_resnet_option")){
+    } else if (layer.HasMember("conv_resnet_option")) {
       auto& resnet_option = layer["conv_resnet_option"];
       assert(resnet_option.IsArray());
       for (auto& config : resnet_option.GetArray())
@@ -75,35 +76,53 @@ struct ModelContainer {
   AE      action_encoder;
   Optim   optimizer;
 
-  ModelContainer(NNModel m, SE&& se, AE&& ae, float learning_rate, float weight_decay = 0.F):
+  ModelContainer(
+      NNModel m,
+      SE&& se,
+      AE&& ae,
+      float learning_rate,
+      float weight_decay = 0.F):
     model(m),
     state_encoder(s::move(se)),
     action_encoder(s::move(ae)),
-    optimizer(m->parameters(), t::optim::AdamOptions(learning_rate).weight_decay(weight_decay))
+    optimizer(
+      m->parameters(),
+      t::optim::AdamOptions(learning_rate).weight_decay(weight_decay))
   {}
 };
 
 template <typename Model>
-void save_model(Model& model, const s::string& model_file, const s::string& optimizer_file){
+void save_model(
+    Model& model,
+    const s::string& model_file,
+    const s::string& optimizer_file)
+{
   t::save(model.model, model_file);
   t::save(model.optimizer, optimizer_file);
 }
 
 template <typename Model>
-void load_model(Model& model, const s::string& model_file, const s::string& optimizer_file, t::Device device){
+void load_model(
+    Model& model,
+    const s::string& model_file,
+    const s::string& optimizer_file,
+    t::Device device)
+{
   t::load(model.model, model_file, device);
   t::load(model.optimizer, optimizer_file, device);
 }
 
 template <typename Model>
-float train(Model& model, ZeroExperience& exp){
-  t::Tensor visit_sums = t::sum(exp.visit_counts, -1).reshape({exp.visit_counts.size(0), 1});
+float train(Model& model, ZeroExperience& exp) {
+  t::Tensor visit_sums = t::sum(exp.visit_counts, -1)
+    .reshape({exp.visit_counts.size(0), 1});
   t::Tensor visit_counts = t::div(exp.visit_counts, visit_sums);
 
   model.model->zero_grad();
 
   TensorP avout = model.model->forward(TensorP(exp.boards, exp.states));
-  t::Tensor policy_loss = t::mean(-1.F * visit_counts.detach() * t::log(avout.x));
+  t::Tensor policy_loss =
+    t::mean(-1.F * visit_counts.detach() * t::log(avout.x));
   t::Tensor value_loss = t::mse_loss(avout.y, exp.rewards.detach());
   t::Tensor loss = policy_loss + value_loss;
 
@@ -113,7 +132,14 @@ float train(Model& model, ZeroExperience& exp){
   return loss.item().to<float>();
 }
 
-void save_training_result(const s::string& filename, const s::vector<float>& losses, const s::vector<uint>& step_counts, uint64 a1win, uint64 a2win, uint64 ties){
+void save_training_result(
+    const s::string& filename,
+    const s::vector<float>& losses,
+    const s::vector<uint>& step_counts,
+    uint64 a1win,
+    uint64 a2win,
+    uint64 ties)
+{
   j::Document doc;
   doc.SetObject();
   j::Document::AllocatorType& allocator = doc.GetAllocator();
@@ -139,10 +165,12 @@ void save_training_result(const s::string& filename, const s::vector<float>& los
   j::Value step_counts_key("step_counts");
   j::Value step_counts_values(j::kArrayType);
   for (uint i = 0; i < step_counts.size(); ++i)
-    step_counts_values.PushBack(j::Value().SetInt(step_counts[i]), allocator);
+    step_counts_values.PushBack(
+      j::Value().SetInt(step_counts[i]), allocator);
   doc.AddMember(step_counts_key, step_counts_values, allocator);
 
-  uint total_steps = s::accumulate(s::begin(step_counts), s::end(step_counts), 0U);
+  uint total_steps = s::accumulate(
+    s::begin(step_counts), s::end(step_counts), 0U);
   float avg_steps = (float)total_steps / (float)step_counts.size();
 
   j::Value avg_steps_key("average_steps");
@@ -155,6 +183,6 @@ void save_training_result(const s::string& filename, const s::vector<float>& los
   doc.Accept(writer);
 }
 
-} // rlgames
+}  // namespace rlgames
 
-#endif//RLGAMES_MODEL_BASE
+#endif  // RLGAMES_MODEL_BASE
