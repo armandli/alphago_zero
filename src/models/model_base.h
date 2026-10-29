@@ -79,10 +79,8 @@ struct ModelContainer {
     model(m),
     state_encoder(s::move(se)),
     action_encoder(s::move(ae)),
-    optimizer(m->parameters(), t::optim::AdamOptions(learning_rate))
-  {
-    optimizer.options.weight_decay(weight_decay);
-  }
+    optimizer(m->parameters(), t::optim::AdamOptions(learning_rate).weight_decay(weight_decay))
+  {}
 };
 
 template <typename Model>

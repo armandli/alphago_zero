@@ -10,8 +10,6 @@ set(Boost_USE_MULTITHREADED ON)
 find_package(Boost 1.72.0 COMPONENTS program_options REQUIRED)
 include_directories( ${Boost_INCLUDE_DIR} )
 
-find_package(Wt REQUIRED Wt HTTP)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
