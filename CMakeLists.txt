@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 
 project(alphago_zero)
 
@@ -12,6 +12,22 @@ include_directories( ${Boost_INCLUDE_DIR} )
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+include(FetchContent)
+
+FetchContent_Declare(cli11
+  GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+  GIT_TAG        v2.7.2
+  GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(cli11)
+
+FetchContent_Declare(ftxui
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/FTXUI
+  GIT_TAG        v7.0.0
+  GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(ftxui)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
