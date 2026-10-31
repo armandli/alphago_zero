@@ -85,12 +85,20 @@ int main(int argc, char* argv[]) {
   R::load_model(model_container, model_file, optimizer_file, device);
   model_container.model->to(device);
 
-  AgentType agent(model_container, device, 1200, 0, 0., 0., rand());
+  AgentType agent(
+    model_container,
+    device,
+    1200,   /*max expansion*/
+    0.5F,   /*exploration factor; 0 would ignore the policy priors*/
+    0.,     /*dirichlet distribution alpha (unused by null_distribution)*/
+    0.,     /*noise factor*/
+    rand()  /*random seed*/
+  );
 
   R::GoGameState<SZ> game_state;
   s::string move_input;
   s::string status =
-    "You play Black.  Enter a move (e.g. E5) and press Play or Enter.";
+    "You play Black.  Enter a move (e.g. E5), pass or resign.";
 
   auto render_board = [&]() -> f::Element {
     s::ostringstream ss;
@@ -114,7 +122,7 @@ int main(int argc, char* argv[]) {
     auto opt_move = R::string_to_move(move_input, SZ);
     move_input.clear();
     if (not opt_move) {
-      status = "Invalid format — use column letter + row number, e.g. E5.";
+      status = "Invalid format — use column letter + row number (e.g. E5), pass or resign.";
       return;
     }
     R::Move move = *opt_move;
@@ -141,10 +149,10 @@ int main(int argc, char* argv[]) {
     game_state = R::GoGameState<SZ>();
     move_input.clear();
     status =
-      "You play Black.  Enter a move (e.g. E5) and press Play or Enter.";
+      "You play Black.  Enter a move (e.g. E5), pass or resign.";
   };
 
-  auto input     = f::Input(&move_input, "e.g. E5");
+  auto input     = f::Input(&move_input, "e.g. E5 / pass / resign");
   auto play_btn  = f::Button("Play",  on_play);
   auto reset_btn = f::Button("Reset", on_reset);
   auto quit_btn  = f::Button("Quit",  quit);

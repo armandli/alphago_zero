@@ -12,12 +12,15 @@ CMAKE_ARGS  = -DTorch_DIR=$(LIBTORCH)/share/cmake/Torch \
               -DCMAKE_INSTALL_PREFIX=$(BUILD_DIR)/install
 JOBS       := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
-.PHONY: all build configure rebuild clean check-torch
+.PHONY: all build test configure rebuild clean check-torch
 
 all: build
 
 build: $(BUILD_DIR)/Makefile
 	cmake --build $(BUILD_DIR) --config Release -j$(JOBS)
+
+test: build
+	ctest --test-dir $(BUILD_DIR) --output-on-failure
 
 check-torch:
 	@test -f $(LIBTORCH)/share/cmake/Torch/TorchConfig.cmake || \

@@ -100,15 +100,20 @@ int main(int argc, char* argv[]) {
   R::GoGameState<SZ> state;
   R::Player turn = R::Player::Black;
 
+  s::println("You play Black. Enter a move (e.g. E5), pass or resign.");
+
   while (not state.is_over()) {
     s::cout << state.board() << s::endl;
 
     R::Move move(R::M::Pass);
 
     switch (turn) {
-    case R::Player::Black:
-      move = R::parse_move(SZ);
+    case R::Player::Black: {
+      auto opt = R::parse_move(state, SZ);
+      if (not opt) return 0;  // input closed
+      move = *opt;
       break;
+    }
 
     case R::Player::White:
       move = agent.select_move(state);

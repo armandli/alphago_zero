@@ -119,12 +119,20 @@ template <typename Model>
     .reshape({exp.visit_counts.size(0), 1});
   t::Tensor visit_counts = t::div(exp.visit_counts, visit_sums);
 
+  // the agent switches the model to eval mode for search
+  model.model->train();
   model.model->zero_grad();
 
   TensorP avout = model.model->forward(TensorP(exp.boards, exp.states));
-  t::Tensor policy_loss =
-    t::mean(-1.F * visit_counts.detach() * t::log(avout.x));
-  t::Tensor value_loss = t::mse_loss(avout.y, exp.rewards.detach());
+  // forward() squeezes its outputs; restore the batch dimension so a batch
+  // of one lines up with the targets
+  t::Tensor policy = avout.x.reshape_as(visit_counts);
+  t::Tensor value  = avout.y.reshape_as(exp.rewards);
+  // clamp so a probability that underflows to 0 can't produce 0 * -inf = NaN
+  constexpr float MIN_PROB = 1E-8F;
+  t::Tensor policy_loss = t::mean(
+    -1.F * visit_counts.detach() * t::log(t::clamp_min(policy, MIN_PROB)));
+  t::Tensor value_loss = t::mse_loss(value, exp.rewards.detach());
   t::Tensor loss = policy_loss + value_loss;
 
   loss.backward();

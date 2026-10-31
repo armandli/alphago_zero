@@ -4,6 +4,8 @@
 #include <cassert>
 #include <array>
 #include <algorithm>
+#include <cstring>
+#include <limits>
 #include <utility>
 
 #include <torch/torch.h>
@@ -60,19 +62,28 @@ struct ZeroAgent :
     // root should never be a terminal state
     assert(not gs.is_over());
 
+    // search is pure inference: BatchNorm must use its running statistics
+    // (not per-position batch stats) and no autograd graph is needed.
+    // train() switches the model back to training mode.
+    t::NoGradGuard no_grad;
+    mModel.model->eval();
+
+    // exploration noise is sampled once per search and applied at root only
+    mRootNoise = mNoise(mGen);
+
     BufferAllocator<Node> arena(mMaxExpand + 1);
     GameState gs_copy = gs;
     Node* root = create_node(arena, s::move(gs_copy));
     for (uint r = 0; r < mMaxExpand; ++r) {
       Node* node = root;
-      uint next_midx = select_branch(node);
+      uint next_midx = select_branch(node, true);
       while (node->has_child(next_midx)) {
         node       = node->child(next_midx);
-        next_midx  = select_branch(node);
+        next_midx  = select_branch(node, false);
       }
       float value;
       if (next_midx >= BF) {
-        // terminal state: update visit count using stored qvalue
+        // terminal state: qvalue holds the actual game result
         value     = -1.F * node->qvalue;
         next_midx = node->last_midx;
         node      = node->parent;
@@ -206,13 +217,24 @@ protected:
       Node* parent = nullptr,
       uint midx = BF)
   {
-    TensorP state = mModel.state_encoder.encode_state(gs, mDevice);
-    TensorP avout = mModel.model->forward(state);
-    t::Tensor priors = avout.x.to(t::Device(t::kCPU));
+    s::array<float, BF> priors{};
+    float qvalue;
+    if (gs.is_over()) {
+      // use the real outcome for finished games, not the network's estimate
+      qvalue = terminal_value(gs);
+    } else {
+      TensorP state = mModel.state_encoder.encode_state(gs, mDevice);
+      TensorP avout = mModel.model->forward(state);
+      t::Tensor tpriors =
+        avout.x.to(t::Device(t::kCPU), t::kFloat).contiguous();
+      assert(tpriors.numel() == BF);
+      s::memcpy(priors.data(), tpriors.data_ptr<float>(), sizeof(float) * BF);
+      qvalue = avout.y.item().to<float>();
+    }
     Node* new_node = arena.allocate(Node(
       s::move(gs),
-      avout.y.item().to<float>(),
-      (float*)priors.data_ptr(),
+      qvalue,
+      priors.data(),
       parent,
       midx));
     if (parent != nullptr) {
@@ -222,22 +244,30 @@ protected:
     return new_node;
   }
 
-  uint select_branch(Node* node) {
+  // value of a finished game from the perspective of the player to move
+  static float terminal_value(GameState& gs) {
+    Player winner = gs.winner();
+    if (winner == Player::Unknown) return TIE_SCORE;
+    return (winner == gs.next_player()) ? MAX_SCORE : MIN_SCORE;
+  }
+
+  uint select_branch(Node* node, bool is_root) {
     assert(node != nullptr);
     if (node->gs.is_over()) return BF;
 
     s::vector<Move> moves = node->gs.legal_moves();
-    s::array<float, BF> noise = mNoise(mGen);
+    float noise_factor = is_root ? mNoiseFactor : 0.F;
     float tcount = node->total_count;
+    // illegal moves must never win: a legal move can score exactly MIN_SCORE
     s::array<float, BF> score;
-    s::ranges::fill(score, MIN_SCORE);
+    s::ranges::fill(score, -s::numeric_limits<float>::infinity());
     for (uint i = 0; i < moves.size(); ++i) {
       uint idx = mModel.action_encoder.move_to_idx(moves[i]);
       float q = node->expected_value(idx);
       float p = node->prior(idx);
       float n = node->visit_count(idx);
       score[idx] = q + mEFactor
-        * ((1 - mNoiseFactor) * p + mNoiseFactor * noise[idx])
+        * ((1 - noise_factor) * p + noise_factor * mRootNoise[idx])
         * (s::sqrt(tcount) / (n + 1));
     }
 
@@ -279,6 +309,7 @@ protected:
 private:
   Model&                    mModel;
   NoiseDist                 mNoise;
+  s::array<float, BF>       mRootNoise{};
   t::Device                 mDevice;
   RGen                      mGen;
   ZeroEpisodicExpCollector* mExp;

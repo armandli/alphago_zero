@@ -7,6 +7,10 @@
 #include <istream>
 #include <optional>
 #include <utility>
+#include <string>
+#include <cctype>
+#include <charconv>
+#include <algorithm>
 
 #include <type_alias.h>
 
@@ -116,7 +120,9 @@ char index_to_char(ubyte idx) {
   case 16: return 'R';
   case 17: return 'S';
   case 18: return 'T';
-  default: assert(false);
+  default:
+    assert(false);
+    return '?';
   }
 }
 
@@ -141,27 +147,32 @@ s::ostream& operator<<(s::ostream& out, Move m) {
   return out;
 }
 
+// accepts "pass", "resign" (any case) or a coordinate such as "E5" / "e5";
+// returns nullopt for anything else instead of throwing
 [[nodiscard]] s::optional<Move> string_to_move(const s::string& str) {
+  s::string lower(str);
+  s::ranges::transform(lower, s::begin(lower),
+    [](unsigned char ch){ return static_cast<char>(s::tolower(ch)); });
+  if (lower == "pass")   return Move(M::Pass);
+  if (lower == "resign") return Move(M::Resign);
+
   if (str.size() < 2) return s::nullopt;
-  char colstr = str[0];
-  s::string rowstr = str.substr(1);
-  int colidx, rowidx;
-  if (s::isupper(colstr)) {
-    if (colstr == 'I') return s::nullopt;
-    colidx = colstr - 'A';
-    if (colstr >= 'J')
-      colidx -= 1;
-  } else {
-    if (colstr == 'i') return s::nullopt;
-    colidx = colstr - 'a';
-    if (colstr >= 'j')
-      colidx -= 1;
-  }
-  try {
-    rowidx = s::stoi(rowstr) - 1;
-  } catch (s::invalid_argument& err) {
-    return s::nullopt;
-  }
+  unsigned char colstr = static_cast<unsigned char>(str[0]);
+  if (not s::isalpha(colstr)) return s::nullopt;
+  char col = static_cast<char>(s::toupper(colstr));
+  if (col == 'I') return s::nullopt;
+  int colidx = col - 'A';
+  if (col >= 'J')
+    colidx -= 1;
+
+  int rowidx = 0;
+  const char* first = str.data() + 1;
+  const char* last  = str.data() + str.size();
+  auto [ptr, ec] = s::from_chars(first, last, rowidx);
+  if (ec != s::errc() or ptr != last) return s::nullopt;
+  rowidx -= 1;
+  if (rowidx < 0 or rowidx > 255) return s::nullopt;
+
   return Move(M::Play, Pt(rowidx, colidx));
 }
 

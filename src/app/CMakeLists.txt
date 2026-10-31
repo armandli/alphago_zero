@@ -23,6 +23,7 @@ target_link_libraries(zero_9small_selfplay encoders)
 target_link_libraries(zero_9small_selfplay experience)
 target_link_libraries(zero_9small_selfplay models)
 target_link_libraries(zero_9small_selfplay agents)
+target_link_libraries(zero_9small_selfplay selfplay)
 target_link_libraries(zero_9small_selfplay CLI11::CLI11)
 
 #vs_zero_9small
@@ -77,6 +78,7 @@ target_link_libraries(zero_13small_selfplay encoders)
 target_link_libraries(zero_13small_selfplay experience)
 target_link_libraries(zero_13small_selfplay models)
 target_link_libraries(zero_13small_selfplay agents)
+target_link_libraries(zero_13small_selfplay selfplay)
 target_link_libraries(zero_13small_selfplay CLI11::CLI11)
 
 #vs_zero_13small

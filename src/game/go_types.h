@@ -240,7 +240,9 @@ struct GoBoard : Board<GoBoard<SZ>> {
     }
     out << '\n';
     for (ubyte i = SZ - 1; i < SZ; --i) {
-      if (i < 10) out << ' ';
+      // row labels are right-aligned to the header width
+      out << ' ';
+      if (SZ > 9 and i + 1 < 10) out << ' ';
       out << i + 1 << ' ';
       for (ubyte j = 0; j < SZ; ++j) {
         udyte idx = get_string_idx(Pt(i, j));
@@ -393,8 +395,10 @@ protected:
             coloring |= static_cast<ubyte>(s::to_underlying(color));
           }
         }
-        if (coloring == 0) return DAME;
-        else               return coloring;
+        // 0 here means "no bordering stone found yet"; only the top-level
+        // caller may turn an empty coloring into DAME, otherwise a dead-end
+        // in the flood fill would mark a whole territory as dame
+        return coloring;
       }
     private:
       const GoBoard<SZ>& board;
@@ -407,6 +411,7 @@ protected:
       if (mBoard.get(pt) == Player::Unknown and labels[i] == 0U) {
         s::bitset<IZ> points;
         ubyte coloring = recursive_labeling(pt, points);
+        if (coloring == 0) coloring = DAME;
         for (uint i = 0; i < IZ; ++i)
           if (points.test(i))
             labels[i] = coloring;
