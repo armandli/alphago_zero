@@ -2,6 +2,8 @@
 #define RLGAMES_RESNET_LAYER
 
 #include <vector>
+#include <string>
+#include <stdexcept>
 
 #include <pytorch_util.h>
 
@@ -22,7 +24,10 @@ struct ConvResnetLayerOptions {
     xcsz(xcsz), c1sz(c1sz), c2sz(c2sz)
   {}
   ConvResnetLayerOptions(const s::vector<TensorDim> dims) {
-    assert(dims.size() == 3);
+    if (dims.size() != 3)
+      throw s::invalid_argument(
+        "ConvResnetLayerOptions expects 3 tensor dimensions, got "
+        + s::to_string(dims.size()));
 
     xcsz = dims[0].i;
     c1sz = dims[1];

@@ -31,7 +31,7 @@ namespace R = rlgames;
 
 constexpr ubyte SZ = 13;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) try {
   s::string model_config_file;
   s::string model_file;
   s::string optimizer_file;
@@ -142,4 +142,8 @@ int main(int argc, char* argv[]) {
   default:
     s::unreachable();
   }
+} catch (const s::exception& e) {
+  // e.g. rlgames::JsonError for a bad model config
+  s::println(stderr, "error: {}", e.what());
+  return 1;
 }

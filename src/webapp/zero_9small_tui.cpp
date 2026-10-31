@@ -2,6 +2,8 @@
 #include <ctime>
 #include <cstdlib>
 #include <string>
+#include <print>
+#include <cstdio>
 #include <sstream>
 #include <vector>
 
@@ -46,7 +48,7 @@ using AgentType = R::ZeroAgent<
   R::GoGameState<SZ>,
   action_size>;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) try {
   s::string model_config_file;
   s::string model_file;
   s::string optimizer_file;
@@ -186,4 +188,8 @@ int main(int argc, char* argv[]) {
   });
 
   screen.Loop(renderer);
+} catch (const s::exception& e) {
+  // e.g. rlgames::JsonError for a bad model config
+  s::println(stderr, "error: {}", e.what());
+  return 1;
 }

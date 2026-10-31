@@ -2,6 +2,8 @@
 #define RLGAMES_ZERO_MODEL_SMALL
 
 #include <vector>
+#include <string>
+#include <stdexcept>
 
 #include <pytorch_util.h>
 #include <go_zero_encoder.h>
@@ -38,7 +40,10 @@ struct ZeroModelSmallOptions {
     vcsz(vcsz)
   {}
   ZeroModelSmallOptions(const s::vector<TensorDim>& dims) {
-    assert(dims.size() == 6);
+    if (dims.size() != 6)
+      throw s::invalid_argument(
+        "ZeroModelSmallOptions expects 6 tensor dimensions, got "
+        + s::to_string(dims.size()));
 
     bc1sz = dims[0];
     bc2sz = dims[1];

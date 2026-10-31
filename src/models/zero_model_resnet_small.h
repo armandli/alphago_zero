@@ -2,6 +2,8 @@
 #define RLGAMES_ZERO_MODEL_RESNET_SMALL
 
 #include <vector>
+#include <string>
+#include <stdexcept>
 
 #include <resnet_layer.h>
 #include <go_zero_encoder.h>
@@ -28,7 +30,10 @@ struct ZeroModelResnetSmallOptions {
 
   ZeroModelResnetSmallOptions() = default;
   ZeroModelResnetSmallOptions(const s::vector<TensorDim> dims) {
-    assert(dims.size() == 18);
+    if (dims.size() != 18)
+      throw s::invalid_argument(
+        "ZeroModelResnetSmallOptions expects 18 tensor dimensions, got "
+        + s::to_string(dims.size()));
 
     c1sz = dims[0];
     c2sz = dims[1];

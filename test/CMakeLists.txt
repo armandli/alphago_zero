@@ -8,6 +8,7 @@ set(ALPHAGO_TESTS
   self_play
   zero_agent
   train
+  json_io
 )
 
 foreach(name ${ALPHAGO_TESTS})
@@ -16,9 +17,11 @@ foreach(name ${ALPHAGO_TESTS})
   # tests rely on asserts (e.g. illegal stone placement) staying enabled
   target_compile_options(${name}_test PRIVATE -UNDEBUG)
   target_link_libraries(${name}_test
-    rapidjson util rgen distributions pytorch_util game encoders
-    experience models agents selfplay
+    util rgen distributions pytorch_util game encoders
+    experience json_io models agents selfplay
     "${TORCH_LIBRARIES}"
     GTest::gtest_main)
+  target_compile_definitions(${name}_test PRIVATE
+    ALPHAGO_DATA_DIR="${PROJECT_SOURCE_DIR}/data")
   gtest_discover_tests(${name}_test DISCOVERY_TIMEOUT 60)
 endforeach()

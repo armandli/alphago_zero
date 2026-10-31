@@ -35,7 +35,7 @@ namespace R = rlgames;
 
 constexpr ubyte SZ = 9;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) try {
   uint episodes = 1000;
   uint batchsize = 10;
   s::string model_config_file;
@@ -173,4 +173,8 @@ int main(int argc, char* argv[]) {
 
   R::save_training_result(
     result_file, losses, step_counts, a1_wins, a2_wins, tie_count);
+} catch (const s::exception& e) {
+  // e.g. rlgames::JsonError for a bad model config
+  s::println(stderr, "error: {}", e.what());
+  return 1;
 }

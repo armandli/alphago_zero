@@ -13,7 +13,6 @@ if (MSVC)
     $<TARGET_FILE_DIR:zero_9small_tui>)
 endif(MSVC)
 
-target_link_libraries(zero_9small_tui rapidjson)
 target_link_libraries(zero_9small_tui util)
 target_link_libraries(zero_9small_tui rgen)
 target_link_libraries(zero_9small_tui distributions)

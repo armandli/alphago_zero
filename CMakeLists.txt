@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.15)
 
 project(alphago_zero)
 
@@ -23,6 +23,13 @@ FetchContent_Declare(ftxui
   GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(ftxui)
+
+FetchContent_Declare(simdjson
+  GIT_REPOSITORY https://github.com/simdjson/simdjson.git
+  GIT_TAG        v5.0.8
+  GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(simdjson)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
