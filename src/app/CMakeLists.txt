@@ -53,7 +53,7 @@ target_link_libraries(vs_zero_9small agents)
 target_link_libraries(vs_zero_9small CLI11::CLI11)
 
 #Zero13 Small
-add_executable(zero_13small_selfplay zero_9small_selfplay.cpp)
+add_executable(zero_13small_selfplay zero_13small_selfplay.cpp)
 
 target_link_libraries(zero_13small_selfplay "${TORCH_LIBRARIES}")
 set_property(TARGET zero_13small_selfplay PROPERTY CXX_STANDARD 26)
@@ -80,7 +80,7 @@ target_link_libraries(zero_13small_selfplay agents)
 target_link_libraries(zero_13small_selfplay CLI11::CLI11)
 
 #vs_zero_13small
-add_executable(vs_zero_13small vs_zero_9small.cpp)
+add_executable(vs_zero_13small vs_zero_13small.cpp)
 
 target_link_libraries(vs_zero_13small "${TORCH_LIBRARIES}")
 set_property(TARGET vs_zero_13small PROPERTY CXX_STANDARD 26)

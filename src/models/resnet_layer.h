@@ -68,8 +68,8 @@ struct ConvResnetLayerV2Impl : public t::nn::Module {
     c2(register_module("c2", t::nn::Conv2d(
       t::nn::Conv2dOptions(opt.c1sz.i, opt.c2sz.i, opt.c2sz.j)
         .padding(opt.c2sz.j - 1)))),
-    b1(register_module("b1", t::nn::BatchNorm(opt.xcsz))),
-    b2(register_module("b2", t::nn::BatchNorm(opt.c1sz.i)))
+    b1(register_module("b1", t::nn::BatchNorm2d(opt.xcsz))),
+    b2(register_module("b2", t::nn::BatchNorm2d(opt.c1sz.i)))
   {}
   t::Tensor forward(t::Tensor x) {
     if (x.dim() == 3) {
@@ -84,8 +84,8 @@ struct ConvResnetLayerV2Impl : public t::nn::Module {
   }
 
 private:
-  t::nn::Conv2d   c1, c2;
-  t::nn::BatchNorm b1, b2;
+  t::nn::Conv2d      c1, c2;
+  t::nn::BatchNorm2d b1, b2;
 };
 TORCH_MODULE(ConvResnetLayerV2);
 

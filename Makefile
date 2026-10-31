@@ -1,6 +1,14 @@
 BUILD_DIR  := build
-LIBTORCH   ?= $(CURDIR)/libtorch
+LIBTORCH   ?= $(firstword $(wildcard $(CURDIR)/libtorch $(HOME)/.local/libtorch) $(CURDIR)/libtorch)
+# C++26 features (<print>, std::println) need GCC >= 14
+CXX_COMPILER ?= $(or $(shell command -v g++-14 2>/dev/null),g++)
+# libtorch CUDA builds need nvcc discoverable at configure time
+CUDA_HOME  ?= /usr/local/cuda
+ifneq ($(wildcard $(CUDA_HOME)/bin/nvcc),)
+export PATH := $(CUDA_HOME)/bin:$(PATH)
+endif
 CMAKE_ARGS  = -DTorch_DIR=$(LIBTORCH)/share/cmake/Torch \
+              -DCMAKE_CXX_COMPILER=$(CXX_COMPILER) \
               -DCMAKE_INSTALL_PREFIX=$(BUILD_DIR)/install
 JOBS       := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
