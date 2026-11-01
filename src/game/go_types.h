@@ -14,7 +14,6 @@
 
 #include <type_alias.h>
 #include <types.h>
-#include <bag.h>
 #include <zobrist_hash.h>
 #include <game_base.h>
 
@@ -22,126 +21,54 @@ namespace rlgames {
 
 namespace s = std;
 
+// Liberties and color of one string of connected stones. A string is
+// identified by its root point (one of its stones), which stays the same for
+// as long as the string exists; its stones are found through GoBoard.
 template <ubyte SZ>
 struct GoStr {
   static constexpr uint SIZE = SZ;
   static constexpr uint IZ   = SZ * SZ;
 
-  GoStr(): mColor(Player::Unknown) {}
-  GoStr(
-      const s::bitset<IZ>& stones,
-      const s::bitset<IZ>& liberties,
-      Player color):
-    mStones(stones),
-    mLiberties(liberties),
-    mColor(color)
+  GoStr() = default;
+  GoStr(Player color, const s::bitset<IZ>& liberties):
+    mLiberties(liberties), mColor(color), mSize(1U)
   {}
-  GoStr(const GoStr& o):
-    mStones(o.mStones),
-    mLiberties(o.mLiberties),
-    mColor(o.mColor)
-  {}
-  GoStr& operator=(const GoStr& o) {
-    mStones    = o.mStones;
-    mLiberties = o.mLiberties;
-    mColor     = o.mColor;
-    return *this;
-  }
-  GoStr(GoStr&& o) noexcept :
-    mStones(s::move(o.mStones)),
-    mLiberties(s::move(o.mLiberties)),
-    mColor(o.mColor)
-  {}
-  GoStr& operator=(GoStr&& o) noexcept {
-    mStones    = s::move(o.mStones);
-    mLiberties = s::move(o.mLiberties);
-    mColor     = o.mColor;
-    return *this;
-  }
 
   Player color() const { return mColor; }
-  const s::bitset<IZ>& stones() const { return mStones; }
   const s::bitset<IZ>& liberties() const { return mLiberties; }
   size_t num_liberties() const { return mLiberties.count(); }
-
-  void add_liberty(Pt pt) { mLiberties.set(index<SZ>(pt)); }
-  void remove_liberty(Pt pt) { mLiberties.reset(index<SZ>(pt)); }
-  void merge(const GoStr& b) {
-    assert(mColor == b.mColor);
-
-    mStones    |= b.mStones;
-    mLiberties  = (mLiberties | b.mLiberties) & ~mStones;
-  }
+  uint size() const { return mSize; }
 
 private:
-  s::bitset<IZ> mStones;
+  template <ubyte> friend struct GoBoard;
+
   s::bitset<IZ> mLiberties;
-  Player        mColor;
+  Player        mColor = Player::Unknown;
+  udyte         mSize  = 0U;
 };
-
-template <ubyte SZ>
-[[gnu::always_inline]] bool operator==(
-    const GoStr<SZ>& a,
-    const GoStr<SZ>& b)
-{
-  return a.color() == b.color()
-      and a.stones() == b.stones()
-      and a.liberties() == b.liberties();
-}
-
-template <ubyte SZ>
-[[gnu::always_inline]] bool operator!=(
-    const GoStr<SZ>& a,
-    const GoStr<SZ>& b)
-{
-  return not (a == b);
-}
-
-template <ubyte SZ>
-[[gnu::always_inline]] GoStr<SZ> merge(
-    const GoStr<SZ>& a,
-    const GoStr<SZ>& b)
-{
-  assert(a.color() == b.color());
-
-  s::bitset<SZ * SZ> stones    = a.stones() | b.stones();
-  s::bitset<SZ * SZ> liberties = (a.liberties() | b.liberties()) & ~stones;
-  return GoStr<SZ>(stones, liberties, a.color());
-}
 
 template <ubyte SZ> struct GoAreaScore;
 
+// Go board with stable string identities.
+//
+// Each point records the root point of its string (NONE when empty); string
+// data lives at the root's slot of a fixed array, and a circular next-stone
+// list links the stones of each string. Merging relabels only the smaller
+// string, capturing walks only the captured stones, and nothing ever moves
+// another string, so string ids and GoStr pointers stay valid until that
+// string itself is merged or captured. All storage is fixed-size, so copying
+// a board is a plain memory copy without allocation.
 template <ubyte SZ>
 struct GoBoard : Board<GoBoard<SZ>> {
   friend struct GoAreaScore<SZ>;
-  static constexpr uint  SIZE  = SZ;
-  static constexpr uint  IZ    = SZ * SZ;
-  static constexpr udyte EMPTY = 0xFFFFU;
+  static constexpr uint  SIZE = SZ;
+  static constexpr uint  IZ   = SZ * SZ;
+  static constexpr udyte NONE = 0xFFFFU;
+  static_assert(IZ < NONE);
 
   GoBoard(): mHash(EMPTY_BOARD) {
-    s::memset(mBoard.data(), 0xFFU, sizeof(udyte) * IZ);
-  }
-  GoBoard(const GoBoard& o):
-    mStrings(o.mStrings),
-    mBoard(o.mBoard),
-    mHash(o.mHash)
-  {}
-  GoBoard& operator=(const GoBoard& o) {
-    mStrings = o.mStrings;
-    mBoard   = o.mBoard;
-    mHash    = o.mHash;
-    return *this;
-  }
-  GoBoard(GoBoard&& o) noexcept :
-    mStrings(s::move(o.mStrings)),
-    mBoard(s::move(o.mBoard)),
-    mHash(o.mHash)
-  {}
-  GoBoard& operator=(GoBoard&& o) noexcept {
-    mStrings = s::move(o.mStrings);
-    mBoard   = s::move(o.mBoard);
-    mHash    = o.mHash;
-    return *this;
+    mRoot.fill(NONE);
+    mNext.fill(NONE);
   }
 
   uint size() const { return SZ; }
@@ -151,93 +78,105 @@ struct GoBoard : Board<GoBoard<SZ>> {
   [[nodiscard]] Player get(Pt pt) const {
     assert(is_on_grid(pt));
 
-    uint idx = get_string_idx(pt);
-    if (idx == EMPTY) return Player::Unknown;
-    else              return mStrings[idx].color();
+    udyte root = mRoot[index<SZ>(pt)];
+    return (root == NONE) ? Player::Unknown : mStrings[root].color();
   }
 
-  // same stones on the same points; string bookkeeping may differ
+  // same stones on the same points; string roots may differ
   [[nodiscard]] bool same_stones(const GoBoard& o) const {
     for (uint i = 0; i < IZ; ++i) {
-      udyte a = mBoard[i];
-      udyte b = o.mBoard[i];
-      if ((a == EMPTY) != (b == EMPTY)) return false;
-      if (a != EMPTY and mStrings[a].color() != o.mStrings[b].color())
+      udyte a = mRoot[i];
+      udyte b = o.mRoot[i];
+      if ((a == NONE) != (b == NONE)) return false;
+      if (a != NONE and mStrings[a].color() != o.mStrings[b].color())
         return false;
     }
     return true;
   }
 
+  // valid until this string is merged or captured
   const GoStr<SZ>* get_string(Pt pt) const {
     assert(is_on_grid(pt));
 
-    uint idx = get_string_idx(pt);
-    if (idx == EMPTY) return nullptr;
-    else              return &mStrings[idx];
+    udyte root = mRoot[index<SZ>(pt)];
+    return (root == NONE) ? nullptr : &mStrings[root];
   }
 
+  // Place a stone, merge it with friendly neighbours and capture opponent
+  // strings left without liberties. A self-capturing stone stays on the
+  // board with no liberties, which lets callers detect it.
   void place_stone(Player player, Pt pt) {
     assert(is_on_grid(pt));
-    assert(get_string_idx(pt) == EMPTY);
+    assert(player != Player::Unknown);
+    uint idx = index<SZ>(pt);
+    assert(mRoot[idx] == NONE);
 
     mHash ^= zobrist_hash<SZ>(player, pt);
 
-    Player oplayer = other_player(player);
-    Neighbours ns = neighbours(pt);
     s::bitset<IZ> liberties;
-    s::array<udyte, 4> adj_same_color;
-    s::array<udyte, 4> adj_oppo_color;
-    decltype(s::begin(adj_same_color)) adj_same_iter = s::begin(adj_same_color);
-    decltype(s::begin(adj_oppo_color)) adj_oppo_iter = s::begin(adj_oppo_color);
+    for (Pt n : neighbours(pt))
+      if (is_on_grid(n) and mRoot[index<SZ>(n)] == NONE)
+        liberties.set(index<SZ>(n));
+    mRoot[idx]    = static_cast<udyte>(idx);
+    mNext[idx]    = static_cast<udyte>(idx);
+    mStrings[idx] = GoStr<SZ>(player, liberties);
 
-    for (Pt neighbour : ns) {
-      if (not is_on_grid(neighbour)) continue;
+    // every neighbouring string loses the liberty at pt
+    s::array<udyte, 4> roots;
+    uint nroots = distinct_neighbour_roots(pt, roots);
+    for (uint i = 0; i < nroots; ++i)
+      mStrings[roots[i]].mLiberties.reset(idx);
 
-      uint sidx = get_string_idx(neighbour);
-      if (sidx == EMPTY)
-        liberties.set(index<SZ>(neighbour));
-      else if (mStrings[sidx].color() == player)
-        *(adj_same_iter++) = sidx;
+    // merge friendly strings, then capture opponents without liberties
+    for (uint i = 0; i < nroots; ++i)
+      if (mStrings[roots[i]].color() == player)
+        merge_strings(mRoot[idx], roots[i]);
+    for (uint i = 0; i < nroots; ++i)
+      if (mStrings[roots[i]].color() != player
+          and mStrings[roots[i]].num_liberties() == 0)
+        capture_string(roots[i]);
+  }
+
+  // would the stone have no liberties after captures (move not applied)
+  [[nodiscard]] bool is_self_capture(Player player, Pt pt) const {
+    assert(is_on_grid(pt));
+    assert(mRoot[index<SZ>(pt)] == NONE);
+
+    for (Pt n : neighbours(pt)) {
+      if (not is_on_grid(n)) continue;
+      udyte root = mRoot[index<SZ>(n)];
+      if (root == NONE) return false;                      // empty neighbour
+      const GoStr<SZ>& string = mStrings[root];
+      size_t libs = string.num_liberties();
+      if (string.color() == player) {
+        if (libs > 1) return false;                        // keeps a liberty
+      } else if (libs == 1) {
+        return false;                                      // gets captured
+      }
     }
-    s::sort(s::begin(adj_same_color), adj_same_iter, s::greater<uint>());
-    adj_same_iter = s::unique(s::begin(adj_same_color), adj_same_iter);
+    return true;
+  }
 
-    // merge all same-color strings together
-    s::bitset<IZ> stones; stones.set(index<SZ>(pt));
-    GoStr<SZ> new_string(stones, liberties, player);
-    for (decltype(s::begin(adj_same_color)) it = s::begin(adj_same_color);
-         it != adj_same_iter; ++it)
-    {
-      new_string.merge(mStrings[*it]);
-      //TODO: seems like pop and replace_string should always go together,
-      //      should place them together
-      mStrings.pop(*it);
-      if (*it < mStrings.size())
-        replace_string(mStrings[*it], *it);
+  // the board hash after place_stone(player, pt), without applying it
+  [[nodiscard]] uint hash_after(Player player, Pt pt) const {
+    assert(is_on_grid(pt));
+    assert(mRoot[index<SZ>(pt)] == NONE);
+
+    uint h = mHash ^ zobrist_hash<SZ>(player, pt);
+    s::array<udyte, 4> roots;
+    uint nroots = distinct_neighbour_roots(pt, roots);
+    for (uint i = 0; i < nroots; ++i) {
+      const GoStr<SZ>& string = mStrings[roots[i]];
+      // an adjacent opponent string whose last liberty is pt is captured
+      if (string.color() != player and string.num_liberties() == 1) {
+        udyte stone = roots[i];
+        do {
+          h ^= zobrist_hash<SZ>(string.color(), point<SZ>(stone));
+          stone = mNext[stone];
+        } while (stone != roots[i]);
+      }
     }
-    udyte new_index = mStrings.push_back(new_string);
-    replace_string(new_string, new_index);
-
-    for (Pt neighbour : ns) {
-      if (not is_on_grid(neighbour)) continue;
-
-      uint sidx = get_string_idx(neighbour);
-      if (sidx != EMPTY and mStrings[sidx].color() == oplayer)
-        *(adj_oppo_iter++) = sidx;
-    }
-    s::sort(s::begin(adj_oppo_color), adj_oppo_iter, s::greater<uint>());
-    adj_oppo_iter = s::unique(s::begin(adj_oppo_color), adj_oppo_iter);
-
-    // remove opponent dead strings
-    for (decltype(s::begin(adj_oppo_color)) it = s::begin(adj_oppo_color);
-         it != adj_oppo_iter; ++it)
-    {
-      GoStr<SZ>& string = mStrings[*it];
-      string.remove_liberty(pt);
-      if (string.num_liberties() == 0)
-        remove_string(string, *it);
-    }
-    // allow board to show self-capture for rule checking
+    return h;
   }
 
   s::ostream& print(s::ostream& out) const {
@@ -257,14 +196,10 @@ struct GoBoard : Board<GoBoard<SZ>> {
       if (SZ > 9 and i + 1 < 10) out << ' ';
       out << i + 1 << ' ';
       for (ubyte j = 0; j < SZ; ++j) {
-        udyte idx = get_string_idx(Pt(i, j));
-        if (idx == EMPTY)
-          out << '.';
-        else {
-          Player color = mStrings[idx].color();
-          if (color == Player::Black) out << bchar;
-          else                        out << wchar;
-        }
+        Player color = get(Pt(i, j));
+        if      (color == Player::Black) out << bchar;
+        else if (color == Player::White) out << wchar;
+        else                             out << '.';
         out << ' ';
       }
       out << i + 1 << '\n';
@@ -279,14 +214,15 @@ struct GoBoard : Board<GoBoard<SZ>> {
     return out;
   }
 
+  // string root of every point, in hex
   s::ostream& debug(s::ostream& out) const {
     for (ubyte i = 0; i < SZ; ++i) {
       for (ubyte j = 0; j < SZ; ++j) {
-        udyte idx = get_string_idx(Pt(i, j));
-        if (idx == EMPTY)
-          out << "  ";
+        udyte root = mRoot[index<SZ>(Pt(i, j))];
+        if (root == NONE)
+          out << "   ";
         else
-          out << s::hex << idx << " ";
+          out << s::hex << root << s::dec << " ";
       }
       out << "\n";
     }
@@ -294,49 +230,67 @@ struct GoBoard : Board<GoBoard<SZ>> {
   }
 
 protected:
-  udyte get_string_idx(Pt pt) const {
-    assert(is_on_grid(pt));
-
-    return mBoard[index<SZ>(pt)];
-  }
-  //TODO: interface redesign, does it really need both index and string ref ?
-  void replace_string(const GoStr<SZ>& string, udyte idx) {
-    const s::bitset<IZ>& stones = string.stones();
-    for (uint i = 0; i < IZ; ++i)
-      if (stones.test(i))
-        mBoard[i] = idx;
-  }
-  //TODO: interface redesign, does it really need both index and string ref ?
-  void remove_string(const GoStr<SZ>& string, uint idx) {
-    const s::bitset<IZ>& stones = string.stones();
-    for (uint i = 0; i < IZ; ++i) {
-      if (stones.test(i)) {
-        Pt pt = point<SZ>(i);
-        Neighbours ns = neighbours(pt);
-        for (Pt neighbour : ns) {
-          if (not is_on_grid(neighbour)) continue;
-
-          uint sidx = get_string_idx(neighbour);
-          if (sidx == EMPTY) continue;
-          if (sidx != idx)
-            mStrings[sidx].add_liberty(pt);
-        }
-        mBoard[i] = EMPTY;
-
-        mHash ^= zobrist_hash<SZ>(string.color(), pt);
-      }
+  // roots of the strings next to pt, each once
+  uint distinct_neighbour_roots(Pt pt, s::array<udyte, 4>& roots) const {
+    uint count = 0;
+    for (Pt n : neighbours(pt)) {
+      if (not is_on_grid(n)) continue;
+      udyte root = mRoot[index<SZ>(n)];
+      if (root == NONE) continue;
+      if (s::find(roots.begin(), roots.begin() + count, root)
+          == roots.begin() + count)
+        roots[count++] = root;
     }
-    //TODO: seems like pop and replace_string should always go together,
-    //      should place them together
-    mStrings.pop(idx);
-    if (idx < mStrings.size())
-      replace_string(mStrings[idx], idx);
+    return count;
+  }
+
+  // merge two strings of the same color; the larger keeps its root
+  void merge_strings(udyte a, udyte b) {
+    if (a == b) return;
+    assert(mStrings[a].color() == mStrings[b].color());
+    if (mStrings[a].size() < mStrings[b].size()) s::swap(a, b);
+
+    udyte stone = b;
+    do {
+      mRoot[stone] = a;
+      stone = mNext[stone];
+    } while (stone != b);
+    s::swap(mNext[a], mNext[b]);  // splice the two circular lists
+
+    GoStr<SZ>& keep = mStrings[a];
+    keep.mLiberties |= mStrings[b].mLiberties;
+    keep.mSize      += mStrings[b].mSize;
+  }
+
+  // remove a string; its stones become liberties of the strings around them
+  void capture_string(udyte root) {
+    Player color = mStrings[root].color();
+    udyte stone = root;
+    do {
+      for (Pt n : neighbours(point<SZ>(stone))) {
+        if (not is_on_grid(n)) continue;
+        udyte nroot = mRoot[index<SZ>(n)];
+        if (nroot != NONE and nroot != root)
+          mStrings[nroot].mLiberties.set(stone);
+      }
+      stone = mNext[stone];
+    } while (stone != root);
+
+    stone = root;
+    do {
+      udyte next = mNext[stone];
+      mHash ^= zobrist_hash<SZ>(color, point<SZ>(stone));
+      mRoot[stone] = NONE;
+      mNext[stone] = NONE;
+      stone = next;
+    } while (stone != root);
   }
 
 private:
-  bag<GoStr<SZ>>      mStrings;
-  s::array<udyte, IZ> mBoard;
-  uint                mHash;
+  s::array<udyte, IZ>     mRoot;     // string root of each point, NONE if empty
+  s::array<udyte, IZ>     mNext;     // next stone of the same string (circular)
+  s::array<GoStr<SZ>, IZ> mStrings;  // valid at root points only
+  uint                    mHash;
 };
 
 template <ubyte SZ>
@@ -566,9 +520,8 @@ struct GoGameState : GameState<GoBoard<SZ>, GoGameState<SZ>> {
   }
   bool does_move_violate_ko(Move move) const {
     if (move.mty != M::Play) return false;
-    GoBoard<SZ> test_board = mBoard;
-    test_board.place_stone(mNPlayer, move.mpt);
-    return mHistory.find(test_board.hash()) != s::end(mHistory);
+    return mHistory.find(mBoard.hash_after(mNPlayer, move.mpt))
+        != s::end(mHistory);
   }
   [[nodiscard]] bool is_valid_move(Move move) const {
     if (is_over())                                          return false;
@@ -613,10 +566,7 @@ protected:
   // self capture is always pruned — it's always bad
   bool is_move_self_capture(Move move) const {
     if (move.mty != M::Play) return false;
-    GoBoard<SZ> test_board = mBoard;
-    test_board.place_stone(mNPlayer, move.mpt);
-    const GoStr<SZ>* string = test_board.get_string(move.mpt);
-    return string->num_liberties() == 0;
+    return mBoard.is_self_capture(mNPlayer, move.mpt);
   }
 
 private:

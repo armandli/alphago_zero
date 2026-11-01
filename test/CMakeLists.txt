@@ -9,6 +9,7 @@ set(ALPHAGO_TESTS
   zero_mcgs_agent
   train
   json_io
+  go_board
 )
 
 foreach(name ${ALPHAGO_TESTS})
