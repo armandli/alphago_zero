@@ -10,7 +10,12 @@ endif
 CMAKE_ARGS  = -DTorch_DIR=$(LIBTORCH)/share/cmake/Torch \
               -DCMAKE_CXX_COMPILER=$(CXX_COMPILER) \
               -DCMAKE_INSTALL_PREFIX=$(BUILD_DIR)/install
-JOBS       := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+NPROC      := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+# each libtorch translation unit needs ~2-3 GB in cc1plus; running nproc jobs on a
+# low-memory machine (e.g. WSL2) gets compilers OOM-killed, so cap jobs by RAM
+MEM_PER_JOB_KB ?= 3000000
+MEM_JOBS   := $(shell awk -v per=$(MEM_PER_JOB_KB) '/^MemAvailable:/ { j = int($$2 / per); print (j < 1 ? 1 : j) }' /proc/meminfo 2>/dev/null)
+JOBS       ?= $(shell j=$(NPROC); m=$(or $(MEM_JOBS),$(NPROC)); echo $$(( j < m ? j : m )))
 
 .PHONY: all build test configure rebuild clean check-torch
 
