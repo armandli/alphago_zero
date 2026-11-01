@@ -103,3 +103,12 @@ target_link_libraries(vs_zero_13small experience)
 target_link_libraries(vs_zero_13small models)
 target_link_libraries(vs_zero_13small agents)
 target_link_libraries(vs_zero_13small CLI11::CLI11)
+
+# MuZero 9x9 training and play
+add_executable(muzero_9x9_selfplay muzero_9x9_selfplay.cpp)
+set_property(TARGET muzero_9x9_selfplay PROPERTY CXX_STANDARD 26)
+target_link_libraries(muzero_9x9_selfplay muzero CLI11::CLI11)
+
+add_executable(vs_muzero_9x9 vs_muzero_9x9.cpp)
+set_property(TARGET vs_muzero_9x9 PROPERTY CXX_STANDARD 26)
+target_link_libraries(vs_muzero_9x9 muzero CLI11::CLI11)

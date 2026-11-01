@@ -10,6 +10,9 @@ set(ALPHAGO_TESTS
   train
   json_io
   go_board
+  muzero_core
+  muzero_search
+  muzero_training
 )
 
 foreach(name ${ALPHAGO_TESTS})
@@ -19,7 +22,7 @@ foreach(name ${ALPHAGO_TESTS})
   target_compile_options(${name}_test PRIVATE -UNDEBUG)
   target_link_libraries(${name}_test
     util rgen distributions pytorch_util game encoders
-    experience json_io models agents selfplay
+    experience json_io models agents selfplay muzero
     "${TORCH_LIBRARIES}"
     GTest::gtest_main)
   target_compile_definitions(${name}_test PRIVATE

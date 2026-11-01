@@ -33,3 +33,6 @@
 
 tags
 build/
+
+# MuZero self-play experience: several GB of binary game records
+data/muzero_9x9/experience/

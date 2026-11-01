@@ -1,0 +1,77 @@
+[train] TransformerMuZero d128 h4 layers 4/3/1: 1716110 parameters, device cuda
+[train] 4 self-play threads x 512 games, 32/8 simulations, data in data/muzero_9x9
+[eval] step_00000000: vs random 18-14 vs mcts_rollout_200 6-26 | elo 42 (mcts_rollout_200 286) [57s]
+[train]    60s step 59 | games 1115 (18.6/s, len 54, black 15%) replay 59860 | loss 11.128 (p 8.094 v 1.781 r 0.419 c -0.402 g 1.168 o 2.105) lr 2.0e-04 | nn 37948 pos/s | learner waits 67% | elo 42
+[train]   120s step 301 | games 1848 (12.2/s, len 72, black 46%) replay 112703 | loss 7.654 (p 7.415 v 1.219 r 0.028 c -0.936 g 0.170 o 1.558) lr 1.0e-03 | nn 12788 pos/s | learner waits 0% | elo 42
+[train]   180s step 531 | games 2261 (6.9/s, len 119, black 60%) replay 161962 | loss 7.117 (p 7.065 v 1.226 r 0.001 c -0.963 g 0.019 o 1.482) lr 1.0e-03 | nn 23667 pos/s | learner waits 0% | elo 42
+[train]   240s step 784 | games 2650 (6.5/s, len 124, black 51%) replay 210355 | loss 6.902 (p 6.837 v 1.209 r 0.004 c -0.956 g 0.023 o 1.507) lr 1.0e-03 | nn 11876 pos/s | learner waits 0% | elo 42
+[train]   300s step 1025 | games 3053 (6.7/s, len 115, black 53%) replay 256824 | loss 6.779 (p 6.726 v 1.187 r 0.003 c -0.949 g 0.024 o 1.496) lr 9.9e-04 | nn 9345 pos/s | learner waits 0% | elo 42
+[train]   360s step 1251 | games 3391 (5.6/s, len 128, black 49%) replay 300232 | loss 6.692 (p 6.665 v 1.165 r 0.004 c -0.947 g 0.024 o 1.481) lr 9.9e-04 | nn 10000 pos/s | learner waits 0% | elo 42
+[train]   420s step 1480 | games 3705 (5.2/s, len 140, black 53%) replay 344045 | loss 6.615 (p 6.615 v 1.137 r 0.004 c -0.946 g 0.025 o 1.477) lr 9.8e-04 | nn 9242 pos/s | learner waits 0% | elo 42
+[eval] step_00001000: vs step_00000000 21-11 vs random 21-11 vs mcts_rollout_200 5-27 | elo 112 (mcts_rollout_200 339) [172s]
+[train]   480s step 1726 | games 4033 (5.5/s, len 144, black 41%) replay 391251 | loss 6.542 (p 6.560 v 1.120 r 0.005 c -0.948 g 0.026 o 1.477) lr 9.7e-04 | nn 10051 pos/s | learner waits 0% | elo 112
+[train]   540s step 1964 | games 4409 (6.3/s, len 122, black 56%) replay 400030 | loss 6.460 (p 6.489 v 1.114 r 0.007 c -0.945 g 0.027 o 1.455) lr 9.6e-04 | nn 13480 pos/s | learner waits 0% | elo 112
+[train]   601s step 2198 | games 4793 (6.4/s, len 117, black 54%) replay 400024 | loss 6.274 (p 6.368 v 1.073 r 0.007 c -0.942 g 0.029 o 1.393) lr 9.4e-04 | nn 10702 pos/s | learner waits 0% | elo 112
+[train]   661s step 2424 | games 5168 (6.2/s, len 116, black 59%) replay 400107 | loss 6.140 (p 6.285 v 1.034 r 0.007 c -0.941 g 0.030 o 1.363) lr 9.3e-04 | nn 9000 pos/s | learner waits 0% | elo 112
+[eval] step_00002000: vs step_00001000 24-8 vs random 31-1 vs mcts_rollout_200 7-25 | elo 320 (mcts_rollout_200 443) [167s]
+[train]   721s step 2675 | games 5574 (6.8/s, len 119, black 59%) replay 400035 | loss 6.134 (p 6.288 v 1.021 r 0.007 c -0.941 g 0.031 o 1.367) lr 9.1e-04 | nn 11670 pos/s | learner waits 0% | elo 320
+[train]   781s step 2919 | games 5934 (6.0/s, len 130, black 58%) replay 400080 | loss 6.104 (p 6.271 v 1.013 r 0.007 c -0.941 g 0.031 o 1.361) lr 8.9e-04 | nn 11766 pos/s | learner waits 0% | elo 320
+[train]   841s step 3166 | games 6321 (6.4/s, len 123, black 59%) replay 400043 | loss 6.091 (p 6.269 v 1.001 r 0.007 c -0.940 g 0.030 o 1.354) lr 8.7e-04 | nn 11322 pos/s | learner waits 0% | elo 320
+[train]   901s step 3394 | games 6691 (6.2/s, len 119, black 58%) replay 400047 | loss 6.095 (p 6.271 v 1.007 r 0.007 c -0.940 g 0.030 o 1.351) lr 8.5e-04 | nn 9832 pos/s | learner waits 0% | elo 320
+[train]   961s step 3620 | games 7075 (6.4/s, len 113, black 58%) replay 400079 | loss 6.082 (p 6.264 v 1.008 r 0.007 c -0.939 g 0.029 o 1.335) lr 8.3e-04 | nn 10453 pos/s | learner waits 0% | elo 320
+[train]  1021s step 3860 | games 7461 (6.4/s, len 119, black 57%) replay 400041 | loss 6.027 (p 6.248 v 0.988 r 0.005 c -0.940 g 0.028 o 1.301) lr 8.1e-04 | nn 10202 pos/s | learner waits 0% | elo 320
+[eval] step_00003000: vs step_00002000 24-8 vs step_00000000 30-2 vs random 32-0 vs mcts_rollout_200 8-24 | elo 460 (mcts_rollout_200 524) [233s]
+[train]  1081s step 4098 | games 7844 (6.4/s, len 119, black 59%) replay 400059 | loss 5.956 (p 6.211 v 0.976 r 0.004 c -0.943 g 0.028 o 1.273) lr 7.9e-04 | nn 11479 pos/s | learner waits 0% | elo 460
+[train]  1141s step 4322 | games 8203 (6.0/s, len 120, black 59%) replay 400031 | loss 5.906 (p 6.182 v 0.965 r 0.005 c -0.945 g 0.027 o 1.261) lr 7.6e-04 | nn 11433 pos/s | learner waits 0% | elo 460
+[train]  1201s step 4543 | games 8558 (5.9/s, len 119, black 68%) replay 400129 | loss 5.853 (p 6.134 v 0.964 r 0.004 c -0.944 g 0.026 o 1.249) lr 7.4e-04 | nn 9940 pos/s | learner waits 0% | elo 460
+[train]  1261s step 4772 | games 8932 (6.2/s, len 118, black 60%) replay 400088 | loss 5.782 (p 6.087 v 0.956 r 0.004 c -0.945 g 0.025 o 1.225) lr 7.1e-04 | nn 9950 pos/s | learner waits 0% | elo 460
+[eval] step_00004000: vs step_00003000 6-26 vs step_00001000 26-6 vs random 25-7 vs mcts_rollout_200 2-30 | elo 254 (mcts_rollout_200 550) [260s]
+[train]  1321s step 5028 | games 9347 (6.9/s, len 118, black 54%) replay 400072 | loss 5.730 (p 6.039 v 0.959 r 0.003 c -0.946 g 0.025 o 1.216) lr 6.8e-04 | nn 11375 pos/s | learner waits 0% | elo 254
+[train]  1381s step 5252 | games 9713 (6.1/s, len 118, black 59%) replay 400024 | loss 5.660 (p 5.985 v 0.952 r 0.004 c -0.947 g 0.023 o 1.202) lr 6.6e-04 | nn 10325 pos/s | learner waits 0% | elo 254
+[train]  1441s step 5472 | games 10074 (6.0/s, len 117, black 57%) replay 400095 | loss 5.602 (p 5.922 v 0.958 r 0.003 c -0.947 g 0.023 o 1.202) lr 6.3e-04 | nn 10477 pos/s | learner waits 0% | elo 254
+[train]  1501s step 5691 | games 10436 (6.0/s, len 116, black 62%) replay 400030 | loss 5.530 (p 5.854 v 0.960 r 0.003 c -0.947 g 0.023 o 1.195) lr 6.1e-04 | nn 11152 pos/s | learner waits 0% | elo 254
+[train]  1561s step 5939 | games 10836 (6.7/s, len 119, black 56%) replay 400061 | loss 5.477 (p 5.797 v 0.965 r 0.003 c -0.947 g 0.022 o 1.191) lr 5.8e-04 | nn 11467 pos/s | learner waits 0% | elo 254
+[eval] step_00005000: vs step_00004000 23-9 vs step_00002000 28-4 vs random 32-0 vs mcts_rollout_200 8-24 | elo 496 (mcts_rollout_200 589) [252s]
+[train]  1622s step 6172 | games 11218 (6.4/s, len 118, black 58%) replay 400095 | loss 5.425 (p 5.739 v 0.972 r 0.003 c -0.947 g 0.022 o 1.187) lr 5.5e-04 | nn 10461 pos/s | learner waits 0% | elo 496
+[train]  1682s step 6388 | games 11557 (5.6/s, len 121, black 53%) replay 400049 | loss 5.361 (p 5.684 v 0.969 r 0.003 c -0.949 g 0.022 o 1.185) lr 5.2e-04 | nn 9745 pos/s | learner waits 0% | elo 496
+[train]  1742s step 6617 | games 11917 (6.0/s, len 122, black 52%) replay 400067 | loss 5.308 (p 5.625 v 0.975 r 0.003 c -0.947 g 0.021 o 1.175) lr 4.9e-04 | nn 10273 pos/s | learner waits 0% | elo 496
+[train]  1802s step 6832 | games 12271 (5.9/s, len 117, black 53%) replay 400085 | loss 5.254 (p 5.567 v 0.978 r 0.004 c -0.945 g 0.022 o 1.169) lr 4.7e-04 | nn 11058 pos/s | learner waits 0% | elo 496
+[eval] step_00006000: vs step_00005000 22-10 vs step_00003000 15-17 vs random 31-1 vs mcts_rollout_200 8-24 | elo 507 (mcts_rollout_200 607) [282s]
+[train]  1862s step 7082 | games 12668 (6.6/s, len 121, black 52%) replay 400025 | loss 5.223 (p 5.530 v 0.986 r 0.003 c -0.946 g 0.022 o 1.173) lr 4.4e-04 | nn 11766 pos/s | learner waits 0% | elo 507
+[train]  1922s step 7313 | games 13044 (6.3/s, len 118, black 48%) replay 400038 | loss 5.162 (p 5.478 v 0.980 r 0.004 c -0.948 g 0.022 o 1.168) lr 4.1e-04 | nn 9933 pos/s | learner waits 0% | elo 507
+[train]  1982s step 7538 | games 13405 (6.0/s, len 120, black 51%) replay 400045 | loss 5.116 (p 5.430 v 0.980 r 0.004 c -0.948 g 0.022 o 1.174) lr 3.9e-04 | nn 10673 pos/s | learner waits 0% | elo 507
+[train]  2042s step 7759 | games 13757 (5.9/s, len 121, black 45%) replay 400041 | loss 5.081 (p 5.393 v 0.982 r 0.004 c -0.947 g 0.022 o 1.172) lr 3.6e-04 | nn 10188 pos/s | learner waits 0% | elo 507
+[train]  2102s step 8004 | games 14148 (6.5/s, len 120, black 47%) replay 400142 | loss 5.029 (p 5.339 v 0.980 r 0.004 c -0.947 g 0.023 o 1.178) lr 3.4e-04 | nn 11254 pos/s | learner waits 0% | elo 507
+[eval] step_00007000: vs step_00006000 18-14 vs step_00004000 26-6 vs random 32-0 vs mcts_rollout_200 9-23 | elo 527 (mcts_rollout_200 627) [251s]
+[train]  2162s step 8220 | games 14499 (5.8/s, len 119, black 50%) replay 400086 | loss 4.990 (p 5.316 v 0.968 r 0.004 c -0.949 g 0.022 o 1.177) lr 3.1e-04 | nn 10052 pos/s | learner waits 0% | elo 527
+[train]  2222s step 8440 | games 14862 (6.0/s, len 117, black 45%) replay 400070 | loss 4.957 (p 5.283 v 0.966 r 0.004 c -0.949 g 0.023 o 1.183) lr 2.9e-04 | nn 8840 pos/s | learner waits 0% | elo 527
+[train]  2282s step 8668 | games 15238 (6.3/s, len 116, black 44%) replay 400102 | loss 4.909 (p 5.243 v 0.956 r 0.003 c -0.948 g 0.023 o 1.183) lr 2.7e-04 | nn 10597 pos/s | learner waits 0% | elo 527
+[train]  2342s step 8904 | games 15635 (6.6/s, len 113, black 44%) replay 400130 | loss 4.854 (p 5.202 v 0.944 r 0.003 c -0.949 g 0.023 o 1.184) lr 2.5e-04 | nn 11169 pos/s | learner waits 0% | elo 527
+[eval] step_00008000: vs step_00007000 21-11 vs step_00005000 25-7 vs random 32-0 vs mcts_rollout_200 13-19 | elo 631 (mcts_rollout_200 640) [254s]
+[train]  2402s step 9135 | games 16015 (6.3/s, len 118, black 46%) replay 400105 | loss 4.830 (p 5.186 v 0.934 r 0.003 c -0.949 g 0.023 o 1.188) lr 2.3e-04 | nn 11450 pos/s | learner waits 0% | elo 631
+[train]  2462s step 9350 | games 16369 (5.9/s, len 117, black 47%) replay 400089 | loss 4.800 (p 5.153 v 0.935 r 0.003 c -0.949 g 0.024 o 1.194) lr 2.1e-04 | nn 10120 pos/s | learner waits 0% | elo 631
+[train]  2522s step 9574 | games 16742 (6.2/s, len 115, black 48%) replay 400030 | loss 4.758 (p 5.130 v 0.919 r 0.003 c -0.951 g 0.024 o 1.191) lr 1.9e-04 | nn 9772 pos/s | learner waits 0% | elo 631
+[train]  2582s step 9792 | games 17104 (6.0/s, len 116, black 43%) replay 400065 | loss 4.683 (p 5.081 v 0.896 r 0.003 c -0.950 g 0.024 o 1.181) lr 1.8e-04 | nn 10275 pos/s | learner waits 0% | elo 631
+[eval] step_00009000: vs step_00008000 17-15 vs step_00006000 21-11 vs random 31-1 vs mcts_rollout_200 13-19 | elo 606 (mcts_rollout_200 639) [267s]
+[train]  2642s step 10040 | games 17508 (6.7/s, len 117, black 49%) replay 400093 | loss 4.652 (p 5.047 v 0.899 r 0.002 c -0.951 g 0.024 o 1.185) lr 1.6e-04 | nn 10718 pos/s | learner waits 0% | elo 606
+[train]  2702s step 10262 | games 17875 (6.1/s, len 117, black 48%) replay 400092 | loss 4.602 (p 4.998 v 0.902 r 0.002 c -0.951 g 0.024 o 1.179) lr 1.5e-04 | nn 10939 pos/s | learner waits 0% | elo 606
+[train]  2763s step 10483 | games 18239 (6.1/s, len 117, black 50%) replay 400117 | loss 4.555 (p 4.957 v 0.899 r 0.002 c -0.952 g 0.024 o 1.176) lr 1.4e-04 | nn 10802 pos/s | learner waits 0% | elo 606
+[train]  2823s step 10703 | games 18602 (6.0/s, len 117, black 47%) replay 400017 | loss 4.493 (p 4.901 v 0.899 r 0.002 c -0.952 g 0.024 o 1.169) lr 1.3e-04 | nn 10147 pos/s | learner waits 0% | elo 606
+[train]  2883s step 10953 | games 19013 (6.8/s, len 117, black 45%) replay 400019 | loss 4.439 (p 4.852 v 0.896 r 0.002 c -0.953 g 0.024 o 1.165) lr 1.2e-04 | nn 11392 pos/s | learner waits 0% | elo 606
+[eval] step_00010000: vs step_00009000 22-10 vs step_00007000 22-10 vs random 32-0 vs mcts_rollout_200 13-19 | elo 654 (mcts_rollout_200 647) [256s]
+[train]  2943s step 11185 | games 19393 (6.3/s, len 117, black 48%) replay 400035 | loss 4.376 (p 4.801 v 0.887 r 0.002 c -0.952 g 0.024 o 1.155) lr 1.1e-04 | nn 10408 pos/s | learner waits 0% | elo 654
+[train]  3003s step 11404 | games 19749 (5.9/s, len 118, black 45%) replay 400078 | loss 4.327 (p 4.755 v 0.887 r 0.002 c -0.952 g 0.024 o 1.150) lr 1.1e-04 | nn 10862 pos/s | learner waits 0% | elo 654
+[train]  3063s step 11623 | games 20107 (6.0/s, len 118, black 51%) replay 400022 | loss 4.296 (p 4.725 v 0.886 r 0.002 c -0.951 g 0.024 o 1.150) lr 1.0e-04 | nn 9473 pos/s | learner waits 0% | elo 654
+[train]  3123s step 11862 | games 20502 (6.6/s, len 115, black 45%) replay 400135 | loss 4.255 (p 4.684 v 0.887 r 0.001 c -0.951 g 0.024 o 1.145) lr 1.0e-04 | nn 11741 pos/s | learner waits 0% | elo 654
+[eval] step_00011000: vs step_00010000 20-12 vs step_00008000 18-14 vs random 32-0 vs mcts_rollout_200 15-17 | elo 673 (mcts_rollout_200 652) [239s]
+[train]  3183s step 12094 | games 20887 (6.4/s, len 117, black 47%) replay 400066 | loss 4.242 (p 4.659 v 0.899 r 0.002 c -0.952 g 0.024 o 1.146) lr 1.0e-04 | nn 10820 pos/s | learner waits 0% | elo 673
+[train]  3243s step 12314 | games 21246 (6.0/s, len 118, black 49%) replay 400069 | loss 4.183 (p 4.613 v 0.892 r 0.001 c -0.952 g 0.024 o 1.138) lr 1.0e-04 | nn 9652 pos/s | learner waits 0% | elo 673
+[train]  3303s step 12531 | games 21601 (5.9/s, len 117, black 52%) replay 400089 | loss 4.169 (p 4.586 v 0.902 r 0.002 c -0.951 g 0.025 o 1.139) lr 1.0e-04 | nn 10496 pos/s | learner waits 0% | elo 673
+[train]  3363s step 12761 | games 21975 (6.2/s, len 118, black 50%) replay 400018 | loss 4.129 (p 4.552 v 0.896 r 0.002 c -0.951 g 0.025 o 1.137) lr 1.0e-04 | nn 10428 pos/s | learner waits 0% | elo 673
+[eval] step_00012000: vs step_00011000 19-13 vs step_00009000 15-17 vs random 29-3 vs mcts_rollout_200 8-24 | elo 548 (mcts_rollout_200 639) [260s]
+[train]  3423s step 13011 | games 22381 (6.7/s, len 118, black 50%) replay 400130 | loss 4.107 (p 4.526 v 0.903 r 0.002 c -0.951 g 0.025 o 1.135) lr 1.0e-04 | nn 11798 pos/s | learner waits 0% | elo 548
+[train]  3483s step 13232 | games 22746 (6.1/s, len 117, black 51%) replay 400010 | loss 4.078 (p 4.492 v 0.908 r 0.002 c -0.951 g 0.025 o 1.134) lr 1.0e-04 | nn 10275 pos/s | learner waits 0% | elo 548
+[train]  3544s step 13451 | games 23100 (5.9/s, len 119, black 48%) replay 400044 | loss 4.067 (p 4.477 v 0.913 r 0.002 c -0.952 g 0.025 o 1.133) lr 1.0e-04 | nn 9946 pos/s | learner waits 0% | elo 548
+[train] stopping
+[train] checkpoint and final model saved at step 13673
+[eval] step_00013673: vs step_00012000 18-14 vs step_00010000 21-11 vs random 30-2 vs mcts_rollout_200 12-20 | elo 595 (mcts_rollout_200 632) [288s]

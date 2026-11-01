@@ -342,6 +342,25 @@ struct GoAreaScore {
          - mKomi;
   }
 
+  // final owner of every point under area scoring: the stone's color, the
+  // surrounding color for territory, Player::Unknown for dame
+  s::array<Player, IZ> ownership() {
+    s::array<ubyte, IZ> labels = create_territory_labeling();
+    s::array<Player, IZ> owner;
+    for (uint i = 0; i < IZ; ++i) {
+      Player stone = mBoard.get(point<SZ>(i));
+      if (stone != Player::Unknown)
+        owner[i] = stone;
+      else if (labels[i] == static_cast<ubyte>(s::to_underlying(Player::Black)))
+        owner[i] = Player::Black;
+      else if (labels[i] == static_cast<ubyte>(s::to_underlying(Player::White)))
+        owner[i] = Player::White;
+      else
+        owner[i] = Player::Unknown;
+    }
+    return owner;
+  }
+
 protected:
   s::array<ubyte, IZ> create_territory_labeling() {
     struct Recursion {
@@ -461,8 +480,10 @@ struct GoGameState : GameState<GoBoard<SZ>, GoGameState<SZ>> {
     mNPlayer(player),
     mPMove(pmove),
     mPPMove(ppmove),
-    mHistory(history)
-  {}
+    mHistory(history.begin(), history.end())
+  {
+    s::ranges::sort(mHistory);
+  }
   GoGameState(const GoGameState& o):
     mBoard(o.mBoard),
     mNPlayer(o.mNPlayer),
@@ -520,8 +541,8 @@ struct GoGameState : GameState<GoBoard<SZ>, GoGameState<SZ>> {
   }
   bool does_move_violate_ko(Move move) const {
     if (move.mty != M::Play) return false;
-    return mHistory.find(mBoard.hash_after(mNPlayer, move.mpt))
-        != s::end(mHistory);
+    return s::ranges::binary_search(
+      mHistory, mBoard.hash_after(mNPlayer, move.mpt));
   }
   [[nodiscard]] bool is_valid_move(Move move) const {
     if (is_over())                                          return false;
@@ -556,7 +577,9 @@ struct GoGameState : GameState<GoBoard<SZ>, GoGameState<SZ>> {
     mPMove  = move;
     if (move.mty == M::Play) {
       mBoard.place_stone(mNPlayer, move.mpt);
-      mHistory.insert(mBoard.hash());
+      uint h = mBoard.hash();
+      auto it = s::ranges::lower_bound(mHistory, h);
+      if (it == s::end(mHistory) or *it != h) mHistory.insert(it, h);
     }
     mNPlayer = other_player(mNPlayer);
     return *this;
@@ -574,7 +597,9 @@ private:
   Player                 mNPlayer;   // next player
   Move                   mPMove;     // previous move
   Move                   mPPMove;    // move before previous
-  s::unordered_set<uint> mHistory;   // zobrist hash history
+  // zobrist hashes of past positions, sorted: a flat vector copies without
+  // per-element allocation, which matters because search copies states
+  s::vector<uint>        mHistory;
 };
 
 }  // namespace rlgames
