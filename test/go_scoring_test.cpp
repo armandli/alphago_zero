@@ -114,3 +114,64 @@ void expect_board_aligned() {
 
 TEST(GoBoardPrint, RowsAlignedWithHeader9) { expect_board_aligned<9>(); }
 TEST(GoBoardPrint, RowsAlignedWithHeader13) { expect_board_aligned<13>(); }
+
+// transposition identity used by the graph search
+
+TEST(GoGameStatePosition, MoveOrderDoesNotMatter) {
+  R::GoGameState<9> a, b;
+  for (auto [r, c] : std::vector<std::pair<int, int>>{{2, 2}, {6, 6}, {2, 6}})
+    a.apply_move(R::Move(R::M::Play, Pt(r, c)));
+  for (auto [r, c] : std::vector<std::pair<int, int>>{{2, 6}, {6, 6}, {2, 2}})
+    b.apply_move(R::Move(R::M::Play, Pt(r, c)));
+  EXPECT_TRUE(a.same_position(b));
+  EXPECT_EQ(a.position_key(), b.position_key());
+}
+
+TEST(GoGameStatePosition, PreviousPassDoesNotMatter) {
+  // same stones (B E5, W A1), white to move in both
+  R::GoGameState<9> after_pass;   // B E5, W A1, B pass
+  for (auto m : {R::Move(R::M::Play, Pt(4, 4)), R::Move(R::M::Play, Pt(0, 0)),
+                 R::Move(R::M::Pass)})
+    after_pass.apply_move(m);
+  R::GoGameState<9> after_play;   // B pass, W A1, B E5
+  for (auto m : {R::Move(R::M::Pass), R::Move(R::M::Play, Pt(0, 0)),
+                 R::Move(R::M::Play, Pt(4, 4))})
+    after_play.apply_move(m);
+  ASSERT_EQ(after_pass.next_player(), after_play.next_player());
+  ASSERT_EQ(after_pass.previous_move().mty, R::M::Pass);
+  ASSERT_EQ(after_play.previous_move().mty, R::M::Play);
+  EXPECT_TRUE(after_pass.same_position(after_play));
+  EXPECT_EQ(after_pass.position_key(), after_play.position_key());
+}
+
+TEST(GoGameStatePosition, DifferentPlayerToMoveSameStones) {
+  // B E5, W A1 with black to move, vs. the same stones with white to move
+  R::GoGameState<9> black_to_move;   // B E5, W A1
+  for (auto m : {R::Move(R::M::Play, Pt(4, 4)), R::Move(R::M::Play, Pt(0, 0))})
+    black_to_move.apply_move(m);
+  R::GoGameState<9> white_to_move;   // B pass, W A1, B E5
+  for (auto m : {R::Move(R::M::Pass), R::Move(R::M::Play, Pt(0, 0)),
+                 R::Move(R::M::Play, Pt(4, 4))})
+    white_to_move.apply_move(m);
+  ASSERT_TRUE(black_to_move.board().same_stones(white_to_move.board()));
+  ASSERT_NE(black_to_move.next_player(), white_to_move.next_player());
+  EXPECT_FALSE(black_to_move.same_position(white_to_move));
+  EXPECT_NE(black_to_move.position_key(), white_to_move.position_key());
+}
+
+TEST(GoGameStatePosition, CapturedStonesCompareByContentNotHistory) {
+  // reach the same final stones once with a capture and once without
+  R::GoGameState<9> a;
+  for (auto m : std::vector<R::Move>{
+         R::Move(R::M::Play, Pt(0, 1)), R::Move(R::M::Play, Pt(0, 0)),
+         R::Move(R::M::Play, Pt(1, 0))})  // black captures white A1
+    a.apply_move(m);
+  R::GoGameState<9> b;
+  for (auto m : std::vector<R::Move>{
+         R::Move(R::M::Play, Pt(1, 0)), R::Move(R::M::Pass),
+         R::Move(R::M::Play, Pt(0, 1))})
+    b.apply_move(m);
+  ASSERT_EQ(a.board().get(Pt(0, 0)), Player::Unknown);
+  EXPECT_TRUE(a.same_position(b));
+  EXPECT_EQ(a.position_key(), b.position_key());
+}

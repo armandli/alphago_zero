@@ -6,7 +6,7 @@ set(ALPHAGO_TESTS
   go_scoring
   move_parsing
   self_play
-  zero_agent
+  zero_mcgs_agent
   train
   json_io
 )

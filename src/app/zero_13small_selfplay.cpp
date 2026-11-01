@@ -23,7 +23,7 @@
 #include <go_zero_encoder.h>
 #include <model_base.h>
 #include <zero_model_resnet_small.h>
-#include <zero_agent.h>
+#include <zero_mcgs_agent.h>
 #include <self_play.h>
 
 #include <torch/torch.h>
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) try {
   model_container.model->to(device);
 
   // the agents share the same model but use separate experience buffers
-  R::ZeroAgent<
+  R::ZeroMCGSAgent<
     decltype(model_container),
     R::dirichlet_distribution<action_size>,
     R::Splitmix,
@@ -116,14 +116,14 @@ int main(int argc, char* argv[]) try {
   agent1(
     model_container,
     device,
-    1600,   /*max expansion*/
+    1600,   /*simulations*/
     0.2,    /*exploration factor*/
     0.03,   /*dirichlet distribution alpha*/
     0.25,   /*noise factor*/
     rand()  /*random seed*/
   );
 
-  R::ZeroAgent<
+  R::ZeroMCGSAgent<
     decltype(model_container),
     R::dirichlet_distribution<action_size>,
     R::Splitmix,
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) try {
   agent2(
     model_container,
     device,
-    1600,   /*max expansion*/
+    1600,   /*simulations*/
     0.2,    /*exploration factor*/
     0.03,   /*dirichlet distribution alpha*/
     0.25,   /*noise factor*/

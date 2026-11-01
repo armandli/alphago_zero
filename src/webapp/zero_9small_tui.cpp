@@ -24,7 +24,7 @@
 #include <go_zero_encoder.h>
 #include <model_base.h>
 #include <zero_model_small.h>
-#include <zero_agent.h>
+#include <zero_mcgs_agent.h>
 
 #include <torch/torch.h>
 
@@ -40,7 +40,7 @@ using ModelContainerType = R::ModelContainer<
   R::ZeroGoStateEncoder<SZ>,
   R::ZeroGoActionEncoder<SZ>,
   t::optim::Adam>;
-using AgentType = R::ZeroAgent<
+using AgentType = R::ZeroMCGSAgent<
   ModelContainerType,
   R::null_distribution<action_size>,
   R::Splitmix,
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) try {
   AgentType agent(
     model_container,
     device,
-    1200,   /*max expansion*/
+    1200,   /*simulations*/
     0.5F,   /*exploration factor; 0 would ignore the policy priors*/
     0.,     /*dirichlet distribution alpha (unused by null_distribution)*/
     0.,     /*noise factor*/

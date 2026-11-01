@@ -20,7 +20,7 @@
 #include <go_zero_encoder.h>
 #include <model_base.h>
 #include <zero_model_small.h>
-#include <zero_agent.h>
+#include <zero_mcgs_agent.h>
 
 #include <torch/torch.h>
 
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) try {
 
   model_container.model->to(device);
 
-  R::ZeroAgent<
+  R::ZeroMCGSAgent<
     decltype(model_container),
     R::null_distribution<action_size>,
     R::Splitmix,
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) try {
   agent(
     model_container,
     device,
-    3200,   /*max expansion*/
+    3200,   /*simulations*/
     0.5F,   /*exploration factor*/
     1000.,  /*dirichlet distribution alpha*/
     0.,     /*noise factor*/

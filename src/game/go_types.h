@@ -156,6 +156,18 @@ struct GoBoard : Board<GoBoard<SZ>> {
     else              return mStrings[idx].color();
   }
 
+  // same stones on the same points; string bookkeeping may differ
+  [[nodiscard]] bool same_stones(const GoBoard& o) const {
+    for (uint i = 0; i < IZ; ++i) {
+      udyte a = mBoard[i];
+      udyte b = o.mBoard[i];
+      if ((a == EMPTY) != (b == EMPTY)) return false;
+      if (a != EMPTY and mStrings[a].color() != o.mStrings[b].color())
+        return false;
+    }
+    return true;
+  }
+
   const GoStr<SZ>* get_string(Pt pt) const {
     assert(is_on_grid(pt));
 
@@ -531,6 +543,20 @@ struct GoGameState : GameState<GoBoard<SZ>, GoGameState<SZ>> {
   const GoBoard<SZ>& board() const { return mBoard; }
   Player next_player() const { return mNPlayer; }
   Move previous_move() const { return mPMove; }
+
+  // Transposition identity for graph search: the stones and the player to
+  // move. The superko history and whether the last move was a pass are
+  // deliberately left out, so positions reached by different move orders
+  // meet. position_key() is a hash of that identity, same_position() the
+  // exact comparison to resolve collisions.
+  [[nodiscard]] uint64 position_key() const {
+    uint64 key = static_cast<uint64>(mBoard.hash()) << 32;
+    key |= static_cast<uint64>(s::to_underlying(mNPlayer));
+    return key;
+  }
+  [[nodiscard]] bool same_position(const GoGameState& o) const {
+    return mNPlayer == o.mNPlayer and mBoard.same_stones(o.mBoard);
+  }
 
   [[nodiscard]] bool is_over() const {
     if (mPMove.mty == M::Unknown)  return false;
