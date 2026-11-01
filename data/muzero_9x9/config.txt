@@ -9,8 +9,8 @@ unroll_steps 5
 replay_capacity 400000
 min_replay 20000
 sample_reuse 2
-learning_rate 0.001
-total_steps 12000
+learning_rate 0.0005
+total_steps 140000
 num_actors 4
 games_per_actor 512
 simulations 32
@@ -19,4 +19,4 @@ full_search_prob 0.25
 komi 7.5
 max_moves 162
 root gumbel
-max_minutes 60
+max_minutes 428

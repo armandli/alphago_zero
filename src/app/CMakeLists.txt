@@ -112,3 +112,7 @@ target_link_libraries(muzero_9x9_selfplay muzero CLI11::CLI11)
 add_executable(vs_muzero_9x9 vs_muzero_9x9.cpp)
 set_property(TARGET vs_muzero_9x9 PROPERTY CXX_STANDARD 26)
 target_link_libraries(vs_muzero_9x9 muzero CLI11::CLI11)
+
+add_executable(muzero_9x9_arena muzero_9x9_arena.cpp)
+set_property(TARGET muzero_9x9_arena PROPERTY CXX_STANDARD 26)
+target_link_libraries(muzero_9x9_arena muzero CLI11::CLI11)
