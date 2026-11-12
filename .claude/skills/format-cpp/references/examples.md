@@ -487,6 +487,82 @@ enum OldStyle { A, B, C };
 enum OldStyle : int { A, B, C };
 ```
 
+### E7 — `inline` only where linkage requires it
+
+**Redundant — removed:**
+```cpp
+// BEFORE (in a header)
+struct Counter {
+  inline int value() const { return mValue; }       // defined in the body: already inline
+  static constexpr inline int kMax = 100;           // static constexpr member: already inline (C++17)
+
+private:
+  int mValue = 0;
+};
+
+inline constexpr int clamp_count(int n) {           // constexpr function: already inline
+  return n > Counter::kMax ? Counter::kMax : n;
+}
+
+template<typename T>
+inline T twice(T v) { return v + v; }               // template: already exempt
+
+// AFTER
+struct Counter {
+  int value() const { return mValue; }
+  static constexpr int kMax = 100;
+
+private:
+  int mValue = 0;
+};
+
+constexpr int clamp_count(int n) {
+  return n > Counter::kMax ? Counter::kMax : n;
+}
+
+template<typename T>
+T twice(T v) { return v + v; }
+```
+
+**In a `.cpp` file — removed, and file-local helpers moved to an anonymous namespace:**
+```cpp
+// BEFORE (parser.cpp; is_digit is not declared in any header)
+inline bool is_digit(char c) { return c >= '0' and c <= '9'; }
+
+// AFTER
+namespace {
+
+bool is_digit(char c) { return c >= '0' and c <= '9'; }
+
+}  // namespace
+```
+
+**Required — kept:**
+```cpp
+// router_common.h, included by several .cpp files
+inline std::string shell_quote(std::string_view s) {       // non-template function defined in a header
+  return "'" + std::string(s) + "'";
+}
+
+inline int gRequestCount = 0;                              // header-defined variable (C++17)
+
+struct Path {
+  std::string str() const;
+
+private:
+  std::string mText;
+};
+inline std::string Path::str() const { return mText; }     // out-of-class member definition in a header
+
+template<typename T> std::string describe(const T&);
+template<> inline std::string describe(const int& v) {     // explicit specialization in a header
+  return "int " + std::to_string(v);
+}
+```
+
+Dropping any of these makes the second `.cpp` file that includes the header fail to link with
+"multiple definition of ...". Adding `inline` to make code faster is never a reason to keep it.
+
 ---
 
 ## Group F: Formatting
@@ -930,6 +1006,53 @@ struct ToolResult {
   std::string output;
   std::string error;
 };
+```
+
+### H4 — Namespace-scope variables: `UPPER_SNAKE_CASE` constants, `UpperCamelCase` mutables
+
+```cpp
+// BEFORE
+namespace jfsh {
+namespace {
+constexpr double kLambda = 0.95;
+const SigEntry kSigNames[] = {{"INT", SIGINT}, {"TERM", SIGTERM}};
+const char* default_prompt = "%~ %# ";
+std::unordered_map<std::string, int> name_map;
+}  // namespace
+
+int lookup(std::string_view name) {
+  constexpr std::string_view kPrefix = "SIG";  // function-local: not renamed
+  // ... uses kLambda, kSigNames, default_prompt, name_map
+}
+}  // namespace jfsh
+
+// AFTER
+namespace jfsh {
+namespace {
+constexpr double LAMBDA = 0.95;
+const SigEntry SIG_NAMES[] = {{"INT", SIGINT}, {"TERM", SIGTERM}};
+const char* DefaultPrompt = "%~ %# ";  // pointer is mutable, so not a constant
+std::unordered_map<std::string, int> NameMap;
+}  // namespace
+
+int lookup(std::string_view name) {
+  constexpr std::string_view kPrefix = "SIG";
+  // ... uses LAMBDA, SIG_NAMES, DefaultPrompt, NameMap
+}
+}  // namespace jfsh
+```
+
+**Across translation units — rename the `extern` declaration and every use:**
+```cpp
+// options.h, BEFORE                      // options.h, AFTER
+extern const OptionInfo kOptionInfo[];    extern const OptionInfo OPTION_INFO[];
+// options.cpp and every file that uses it are updated to OPTION_INFO as well.
+```
+
+**Exception — skip a rename that collides with a macro:**
+```cpp
+// Keep as-is: renaming to EOF would be replaced by the <cstdio> macro.
+constexpr int kEof = -1;
 ```
 
 **Exception — static members keep their convention:**
