@@ -1,6 +1,6 @@
 ---
 name: format-cpp
-description: Formats C++ code according to 33 specific style rules covering whitespace, braces, preprocessor directives, namespaces, types, formatting, semantic transformations, naming conventions, and comments. Use when user asks to "format my C++ code", "apply C++ style rules", "clean up this C++ file", or "run format-cpp on X". Run refactor-cpp before this skill. Do NOT use for explaining C++ code, debugging, or writing new C++ code from scratch.
+description: Formats C++ code according to 34 specific style rules covering whitespace, braces, preprocessor directives, namespaces, types, formatting, semantic transformations, naming conventions, and comments. Use when user asks to "format my C++ code", "apply C++ style rules", "clean up this C++ file", or "run format-cpp on X". Run refactor-cpp before this skill. Do NOT use for explaining C++ code, debugging, or writing new C++ code from scratch.
 argument-hint: "[file or directory path]"
 ---
 
@@ -169,6 +169,20 @@ Add `#include <optional>` if not already present.
 - Copying the object to return it would be expensive: large containers or buffers modified in place, especially in hot loops.
 - The signature is fixed externally: `virtual` / `override`, `extern "C"`, callbacks matching a library-defined type, or third-party code.
 - The parameter is output-only (its incoming value is never read). That is not an in-out parameter; leave it unless it is trivially returnable.
+
+**G5 — Shared language helpers.** Generic core-language helpers, those that work on any type rather than on one module's data, are defined once in the project's language utility header and never copied into individual files. In this repo that header is `src/util/language.h` (namespace `pi::util`). It holds:
+
+| Helper | Use | Replaces |
+|---|---|---|
+| `util::Overloaded{...}` | one visitor out of several lambdas for `s::visit` | a local `template <typename... Ts> struct overloaded : Ts... { using Ts::operator()...; };` |
+
+- **Replace local copies.** Delete a file's own definition of a helper the header already provides, including the anonymous namespace that existed only to hold it and any `TODO` about sharing it. `#include <util/language.h>` (C2: project headers group) and qualify uses as `util::Overloaded` inside `pi::` namespaces, or `pi::util::Overloaded` outside them.
+- **Grow the header, don't fork it.** If a helper of this kind is defined in two or more files and is not in the header yet, move it there: name it by H1/H2/H4 (`overloaded` → `Overloaded`, `always_false` → `ALWAYS_FALSE`), give it a one-line usage comment, delete the copies, and add a row to the table above. A helper used in only one file stays where it is (refactor-cpp extracts only repeated code).
+- **What belongs there.** Helpers about the language itself: visitor builders, `always_false<T>` for `static_assert` in `if constexpr` branches, scope guards. String, container or numeric helpers go in their own `util/` headers (`util/strings.h`, ...), and namespace and type aliases go in `util/aliases.h` (D2).
+
+**Exceptions — do NOT replace:**
+- A local helper that is not equivalent to the shared one (different members, extra deduction guides, a constraint), unless it is used only in ways the shared one supports.
+- Code the project does not own (third-party, vendored, generated).
 
 ### Group H: Naming Conventions
 

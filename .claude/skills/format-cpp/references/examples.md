@@ -895,6 +895,60 @@ void sort_entries(std::vector<Entry>& entries);
 std::ostream& operator<<(std::ostream& os, const Widget& w);
 ```
 
+### G5 — Shared language helpers
+
+**Local `overloaded` copy → `util::Overloaded` from `<util/language.h>`:**
+```cpp
+// BEFORE (src/ai/events.cpp)
+#include <ai/events.h>
+
+namespace pi::ai {
+
+// TODO refactor to util and share
+namespace {
+template <typename... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+}  // namespace
+
+strv event_type(const AssistantMessageEvent& event) {
+  return s::visit(overloaded{
+    [](const StartEvent&) -> strv { return "start"; },
+    [](const DoneEvent&)  -> strv { return "done"; },
+    [](const auto&)       -> strv { return "other"; },
+  }, event);
+}
+
+}  // namespace pi::ai
+
+// AFTER
+#include <ai/events.h>
+
+#include <util/language.h>
+
+namespace pi::ai {
+
+strv event_type(const AssistantMessageEvent& event) {
+  return s::visit(util::Overloaded{
+    [](const StartEvent&) -> strv { return "start"; },
+    [](const DoneEvent&)  -> strv { return "done"; },
+    [](const auto&)       -> strv { return "other"; },
+  }, event);
+}
+
+}  // namespace pi::ai
+```
+
+**Helper repeated in several files but missing from the header → moved into it:**
+```cpp
+// BEFORE: the same template in a.cpp and b.cpp
+template <typename> inline constexpr bool always_false = false;
+
+// AFTER: once, in src/util/language.h (namespace pi::util), with a usage line
+// For static_assert in the last `if constexpr` branch of a visitor:
+//   else static_assert(util::ALWAYS_FALSE<T>, "unhandled alternative");
+template <typename> inline constexpr bool ALWAYS_FALSE = false;
+```
+Renamed by H4 (a namespace-scope constant). `inline` stays, per E7: it is a variable defined in a header. Add a row for it to the G5 table in SKILL.md.
+
 ---
 
 ## Group H: Naming Conventions
