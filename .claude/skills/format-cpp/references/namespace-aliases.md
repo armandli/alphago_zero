@@ -4,7 +4,7 @@ Use these predefined aliases when introducing namespace aliases (rule D2). Place
 
 ## Project Alias Header
 
-This repo defines its aliases once in `src/util/aliases.h`, which is the source of truth. Include it rather than redeclaring the aliases below, and add any new project-wide alias there. Its namespace aliases (`s`, `sc`, `sf`, `st`) match the Standard Library table.
+A project defines its aliases once in a shared `aliases.h`; its location doesn't matter (e.g. `src/util/aliases.h`, `include/<project>/core/aliases.h`). That header is the source of truth: include it rather than redeclaring the aliases below, and add any new project-wide alias there. Its namespace aliases match the Standard Library table. Declare the aliases inside the project's namespace, and give the header only the namespace aliases whose headers it already includes, so it doesn't pull `<filesystem>` or `<chrono>` into every file; a namespace such as `sf` used only in tests can be declared in a test fixture header instead.
 
 ### Type Aliases
 
@@ -14,6 +14,8 @@ This repo defines its aliases once in `src/util/aliases.h`, which is the source 
 | `std::string_view` | `strv` | `using strv = s::string_view;` |
 | `std::vector<T, A>` | `vec<T>` | `template <typename T, typename A = s::allocator<T>> using vec = s::vector<T, A>;` |
 | `std::optional<T>` | `opt<T>` | `template <typename T> using opt = s::optional<T>;` |
+| `std::optional<std::reference_wrapper<T>>` | `optref<T>` | `template <typename T> using optref = s::optional<s::reference_wrapper<T>>;` |
+| `std::function<Sig>` | `func<Sig>` | `template <typename Sig> using func = s::function<Sig>;` |
 | `std::unordered_map<K, V, ...>` | `umap<K, V>` | `template <typename... Ts> using umap = s::unordered_map<Ts...>;` |
 | `std::unordered_set<T, ...>` | `uset<T>` | `template <typename... Ts> using uset = s::unordered_set<Ts...>;` |
 | `std::unordered_multimap<K, V, ...>` | `ummap<K, V>` | `template <typename... Ts> using ummap = s::unordered_multimap<Ts...>;` |
@@ -21,6 +23,10 @@ This repo defines its aliases once in `src/util/aliases.h`, which is the source 
 | `std::unique_ptr<T, D>` | `uptr<T>` | `template <typename T, typename D = s::default_delete<T>> using uptr = s::unique_ptr<T, D>;` |
 | `std::shared_ptr<T>` | `sptr<T>` | `template <typename T> using sptr = s::shared_ptr<T>;` |
 | `std::weak_ptr<T>` | `wptr<T>` | `template <typename T> using wptr = s::weak_ptr<T>;` |
+
+`optref<T>` is for lookups that return a reference into a table rather than a copy (`optref<const Entry> find(strv name) const;`); write `optref<const T>` for a read-only one. Fixed-width integers are spelled through the namespace alias (`s::int64_t`, `s::uint32_t`), not given aliases of their own.
+
+Pick type alias names that don't collide with names the code already uses for variables or members (see D2, Shadowing). `fn`, for instance, is a common parameter name, which is why `std::function` is `func`.
 
 ## Standard Library
 
