@@ -1,0 +1,38 @@
+reference: data/muzero_9x9/snapshots/step_00145236.pt | checking snapshots after step 145236 | 256 games, 64 simulations | log: data/muzero_9x9/eval/arena.csv
+08:24  step_00148000        vs reference 124-132  elo  -11 (new best) | in-run elo pending
+08:39  step_00152000        vs reference 120-136  elo  -22 | in-run elo pending
+08:54  step_00156000        vs reference 117-139  elo  -30 | in-run elo pending
+09:08  step_00160000        vs reference 124-132  elo  -11 | in-run elo pending
+09:23  step_00164000        vs reference 121-135  elo  -19 | in-run elo pending
+09:37  step_00168000        vs reference 104-152  elo  -66 | in-run elo pending
+09:52  step_00172000        vs reference 115-141  elo  -35 | in-run elo pending
+10:07  step_00176000        vs reference 140-116  elo  +33 (new best) | in-run elo pending
+10:21  step_00180000        vs reference 117-139  elo  -30 | in-run elo pending
+10:36  step_00184000        vs reference 128-128  elo   +0 | in-run elo pending
+10:50  step_00188000        vs reference 130-126  elo   +5 | in-run elo pending
+11:05  step_00192000        vs reference 121-135  elo  -19 | in-run elo pending
+11:20  step_00196000        vs reference 140-116  elo  +33 | in-run elo pending
+11:35  step_00200000        vs reference 130-126  elo   +5 | in-run elo pending
+11:49  step_00204000        vs reference 129-127  elo   +3 | in-run elo pending
+12:03  step_00208000        vs reference 113-143  elo  -41 | in-run elo pending
+12:18  step_00212000        vs reference 123-133  elo  -14 | in-run elo pending
+12:33  step_00216000        vs reference 122-134  elo  -16 | in-run elo pending
+12:47  step_00220000        vs reference 128-128  elo   +0 | in-run elo pending
+13:03  step_00224000        vs reference 144-112  elo  +44 (new best) | in-run elo pending
+13:17  step_00228000        vs reference 110-146  elo  -49 | in-run elo pending
+13:32  step_00232000        vs reference 139-117  elo  +30 | in-run elo pending
+13:45  step_00236000        vs reference 139-117  elo  +30 | in-run elo pending
+14:00  step_00240000        vs reference 124-132  elo  -11 | in-run elo pending
+14:15  step_00244000        vs reference 130-126  elo   +5 | in-run elo pending
+14:30  step_00248000        vs reference 137-119  elo  +24 | in-run elo pending
+14:45  step_00252000        vs reference 131-125  elo   +8 | in-run elo pending
+14:58  step_00256000        vs reference 117-139  elo  -30 | in-run elo pending
+15:13  step_00260000        vs reference 145-111  elo  +46 (new best) | in-run elo pending
+15:28  step_00264000        vs reference 135-121  elo  +19 | in-run elo pending
+15:43  step_00268000        vs reference 129-127  elo   +3 | in-run elo pending
+15:57  step_00272000        vs reference 131-125  elo   +8 | in-run elo pending
+16:12  step_00276000        vs reference 127-129  elo   -3 | in-run elo pending
+16:16  step_00277259        vs reference 144-112  elo  +44 | in-run elo pending
+trainer stopped; final model checks (512 games):
+  final_model vs step_00145236: 261-251  elo +7
+  final_model vs step_00260000 (best snapshot): 283-229  elo +37

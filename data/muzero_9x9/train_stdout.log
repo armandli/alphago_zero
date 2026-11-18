@@ -1087,3 +1087,8 @@ frame #15: <unknown function> + 0x17965 (0x5c632a448965 in build/bin/muzero_9x9_
 [eval] step_00144000: vs step_00140000 62-66 vs step_00132000 65-63 vs random 127-1 vs mcts_rollout_200 66-62 | elo 747 (mcts_rollout_200 760) [308s]
 [train] checkpoint and final model saved at step 145236
 [eval] step_00145236: vs step_00144000 60-68 vs step_00136000 70-58 vs random 128-0 vs mcts_rollout_200 57-71 | elo 735 (mcts_rollout_200 763) [151s]
+===== run started 2026-11-17T08:11:05-05:00: resume from step 145236, 480 min, lr 3e-4, lr horizon 272733 =====
+[train] resumed from step 145236
+[train] TransformerMuZero d128 h4 layers 4/3/1: 1716110 parameters, device cuda
+[train] loaded 3473 games, 400097 positions of experience
+[train] 4 self-play threads x 512 games, 32/8 simulations, data in data/muzero_9x9
