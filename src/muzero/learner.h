@@ -146,6 +146,7 @@ struct LearnerConfig {
   double weight_decay      = 0.01;
   int    warmup_steps      = 300;
   int    total_steps       = 15000;   // cosine decay horizon
+  int    schedule_start    = 0;       // step where warmup and cosine decay begin (warm restarts)
   double final_lr_fraction = 0.1;
   double grad_clip         = 1.0;
   bool   bf16              = true;    // autocast forward/backward on CUDA
@@ -223,10 +224,12 @@ struct Learner {
 
   double learning_rate(int64_t step) const {
     const LearnerConfig& c = mConfig;
-    if (step < c.warmup_steps)
-      return c.learning_rate * static_cast<double>(step + 1) / c.warmup_steps;
-    double progress = s::min(1.0, static_cast<double>(step - c.warmup_steps)
-                                  / s::max(1, c.total_steps - c.warmup_steps));
+    int64_t local = s::max<int64_t>(0, step - c.schedule_start);
+    int64_t span  = static_cast<int64_t>(c.total_steps) - c.schedule_start;
+    if (local < c.warmup_steps)
+      return c.learning_rate * static_cast<double>(local + 1) / c.warmup_steps;
+    double progress = s::min(1.0, static_cast<double>(local - c.warmup_steps)
+                                  / s::max<int64_t>(1, span - c.warmup_steps));
     double cosine = 0.5 * (1.0 + s::cos(M_PI * progress));
     return c.learning_rate * (c.final_lr_fraction + (1.0 - c.final_lr_fraction) * cosine);
   }

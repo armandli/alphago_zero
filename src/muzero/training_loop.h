@@ -306,7 +306,7 @@ private:
         << "\nbatch_size " << c.batch_size << "\nunroll_steps " << c.unroll_steps
         << "\nreplay_capacity " << c.replay_capacity << "\nmin_replay " << c.min_replay
         << "\nsample_reuse " << c.sample_reuse << "\nlearning_rate " << c.learner.learning_rate
-        << "\ntotal_steps " << c.learner.total_steps << "\nnum_actors " << c.num_actors
+        << "\ntotal_steps " << c.learner.total_steps << "\nlr_schedule_start " << c.learner.schedule_start << "\nnum_actors " << c.num_actors
         << "\ngames_per_actor " << c.selfplay.games_per_actor
         << "\nsimulations " << c.selfplay.num_simulations
         << "\nfast_simulations " << c.selfplay.fast_simulations

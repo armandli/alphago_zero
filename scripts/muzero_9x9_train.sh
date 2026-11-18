@@ -2,8 +2,9 @@
 # Continue (or stop) MuZero 9x9 self-play training in the background.
 #
 # Resumes from <data-dir>/checkpoint with the settings of the 8-hour run of
-# 2026-11-01: peak lr 5e-4 cosine-decayed so it reaches its floor (5e-5) just
-# before the time budget runs out, snapshots every 4000 steps, 128-game
+# 2026-11-01: a warm restart (warmup, then cosine decay starting at the resume
+# step) from peak lr 5e-4 down to its floor (5e-5) just before the time budget
+# runs out, snapshots every 4000 steps, 128-game
 # in-run evaluation matches. The trainer runs detached (survives closing the
 # terminal) and its output is appended to <data-dir>/train_stdout.log.
 #
@@ -23,17 +24,19 @@ DATA_DIR="data/muzero_9x9"
 MINUTES=480
 LR=5e-4
 HORIZON=""          # empty: derived from the time budget
+LR_START=""         # step where warmup and cosine decay begin; empty: the resume step
 RATE=""             # learner steps per second; empty: measured from train_log.csv
 ACTION=start
 EXTRA=()
 
-usage() { sed -n '2,19p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,18p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --minutes)    MINUTES="$2"; shift 2 ;;
     --lr)         LR="$2"; shift 2 ;;
     --lr-horizon) HORIZON="$2"; shift 2 ;;
+    --lr-start)   LR_START="$2"; shift 2 ;;
     --rate)       RATE="$2"; shift 2 ;;
     --data-dir)   DATA_DIR="$2"; shift 2 ;;
     --dry-run)    ACTION=dry-run; shift ;;
@@ -101,6 +104,10 @@ if [[ -z "$RATE" ]]; then
   RATE=${RATE:-4.8}
 fi
 
+# every run is a warm restart: warmup and cosine decay start at the resume
+# step, so --lr is the lr this run actually trains at first
+LR_START=${LR_START:-$START_STEP}
+
 # reach the lr floor at 95% of the budget so the last stretch trains annealed
 if [[ -z "$HORIZON" ]]; then
   HORIZON=$(awk -v s="$START_STEP" -v r="$RATE" -v m="$MINUTES" \
@@ -110,19 +117,19 @@ fi
 CMD=("$BIN" --data-dir "$DATA_DIR" --minutes "$MINUTES"
   --dims 128 --heads 4 --repr-layers 4 --dyn-layers 3 --pred-layers 1
   --batch-size 384 --unroll 5 --replay 400000 --min-replay 20000 --sample-reuse 2
-  --lr "$LR" --lr-horizon "$HORIZON"
+  --lr "$LR" --lr-horizon "$HORIZON" --lr-start "$LR_START"
   --actors 4 --games-per-actor 512 --simulations 32 --fast-simulations 8 --full-search-prob 0.25
   --root gumbel --komi 7.5
   --snapshot-interval 4000 --eval-games 128 --eval-baseline-games 128
   ${EXTRA[@]+"${EXTRA[@]}"})
 
-echo "resume from step $START_STEP, ${MINUTES} min at ~${RATE} steps/s, lr $LR, lr horizon $HORIZON"
+echo "resume from step $START_STEP, ${MINUTES} min at ~${RATE} steps/s, lr $LR from step $LR_START, lr horizon $HORIZON"
 if [[ "$ACTION" == dry-run ]]; then
   printf '%q ' "${CMD[@]}"; echo
   exit 0
 fi
 
-echo "===== run started $(date -Is): resume from step $START_STEP, $MINUTES min, lr $LR, lr horizon $HORIZON =====" >> "$LOG"
+echo "===== run started $(date -Is): resume from step $START_STEP, $MINUTES min, lr $LR from step $LR_START, lr horizon $HORIZON, extra: ${EXTRA[*]-} =====" >> "$LOG"
 echo "$START_STEP" > "$DATA_DIR/run_start_step.txt"
 # setsid detaches from this terminal; as a single background command $! is
 # the trainer itself (setsid and nohup exec it in place)

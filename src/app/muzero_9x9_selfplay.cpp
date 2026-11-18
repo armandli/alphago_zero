@@ -36,6 +36,8 @@ int main(int argc, char* argv[]) try {
   s::string root = "gumbel";
 
   CLI::App app{"MuZero self-play training for 9x9 Go"};
+  // a repeated option takes its last value, so wrapper scripts can override defaults
+  app.option_defaults()->multi_option_policy(CLI::MultiOptionPolicy::TakeLast);
   app.add_option("--data-dir", c.data_dir, "Output directory for experience, snapshots, logs")->capture_default_str();
   app.add_flag("!--no-resume", c.resume, "Start fresh instead of resuming from --data-dir");
   app.add_option("--minutes", c.max_minutes, "Wall clock budget of this run")->capture_default_str();
@@ -52,6 +54,7 @@ int main(int argc, char* argv[]) try {
   app.add_option("--unroll", c.unroll_steps, "Unroll steps K")->capture_default_str();
   app.add_option("--lr", c.learner.learning_rate, "Peak learning rate")->capture_default_str();
   app.add_option("--lr-horizon", c.learner.total_steps, "Cosine decay horizon in steps")->capture_default_str();
+  app.add_option("--lr-start", c.learner.schedule_start, "Step where warmup and cosine decay begin, for warm restarts")->capture_default_str();
   app.add_option("--warmup", c.learner.warmup_steps, "Warmup steps")->capture_default_str();
   app.add_option("--replay", c.replay_capacity, "Replay buffer capacity in positions")->capture_default_str();
   app.add_option("--min-replay", c.min_replay, "Positions before training starts")->capture_default_str();

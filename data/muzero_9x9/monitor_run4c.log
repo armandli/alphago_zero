@@ -1,0 +1,17 @@
+reference: data/muzero_9x9/snapshots/step_00277259.pt | checking snapshots after step 357230 | 256 games, 64 simulations | log: data/muzero_9x9/eval/arena.csv
+13:34  step_00360000        vs reference 119-137  elo  -24 | in-run elo pending
+13:48  step_00364000        vs reference 128-128  elo   +0 (new best) | in-run elo pending
+14:03  step_00368000        vs reference 113-143  elo  -41 | in-run elo pending
+14:18  step_00372000        vs reference 115-141  elo  -35 | in-run elo pending
+14:32  step_00376000        vs reference 119-137  elo  -24 | in-run elo pending
+14:47  step_00380000        vs reference 113-143  elo  -41 | in-run elo pending
+15:02  step_00384000        vs reference 129-127  elo   +3 (new best) | in-run elo pending
+15:17  step_00388000        vs reference 121-135  elo  -19 | in-run elo pending
+15:31  step_00392000        vs reference 134-122  elo  +16 (new best) | in-run elo pending
+15:45  step_00396000        vs reference 129-127  elo   +3 | in-run elo pending
+16:00  step_00400000        vs reference 132-124  elo  +11 | in-run elo pending
+16:15  step_00404000        vs reference 143-113  elo  +41 (new best) | in-run elo pending
+16:27  step_00407954        vs reference 131-125  elo   +8 | in-run elo pending
+trainer stopped; final model checks (512 games):
+  final_model vs step_00277259: 254-258  elo -3
+  final_model vs step_00404000 (best snapshot): 250-262  elo -8
